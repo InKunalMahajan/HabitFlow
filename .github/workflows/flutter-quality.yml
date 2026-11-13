@@ -1,0 +1,32 @@
+name: Flutter quality checks
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - '.github/workflows/flutter-quality.yml'
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/flutter-quality.yml'
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Dependencies
+        run: flutter pub get
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Static analysis
+        run: flutter analyze
+      - name: Widget and unit tests
+        run: flutter test
