@@ -1,11 +1,27 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/entries/entry_store.dart';
+import 'features/entries/entry_database.dart';
 
-void main() => runApp(const HabitFlowApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    final database = await EntryDatabase.open();
+    final entries = await database.load();
+    runApp(HabitFlowApp(database: database, initialEntries: entries));
+  } catch (error) {
+    runApp(MaterialApp(home: Scaffold(body: Center(child: Text(
+      'Could not open local storage. Your data was not changed.\\n$error',
+      textAlign: TextAlign.center,
+    )))));
+  }
+}
 
 class HabitFlowApp extends StatelessWidget {
-  const HabitFlowApp({super.key});
+  const HabitFlowApp({super.key, this.database, this.initialEntries});
+
+  final EntryDatabase? database;
+  final List<FlowEntry>? initialEntries;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -14,12 +30,15 @@ class HabitFlowApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
-        home: const HabitFlowShell(),
+        home: HabitFlowShell(database: database, initialEntries: initialEntries),
       );
 }
 
 class HabitFlowShell extends StatefulWidget {
-  const HabitFlowShell({super.key});
+  const HabitFlowShell({super.key, this.database, this.initialEntries});
+
+  final EntryDatabase? database;
+  final List<FlowEntry>? initialEntries;
 
   @override
   State<HabitFlowShell> createState() => _HabitFlowShellState();
@@ -29,6 +48,31 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
   final EntryStore _store = EntryStore()
     ..add('Review today’s priorities', EntryKind.task)
     ..add('Plan tomorrow', EntryKind.task);
+  Future<void> _saveQueue = Future<void>.value();
+  String? _saveError;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialEntries != null) {
+      _store.restore(widget.initialEntries!);
+    }
+  }
+
+  void _persist() {
+    final db = widget.database;
+    if (db == null) return;
+    final snapshot = List<FlowEntry>.of(_store.items);
+    _saveQueue = _saveQueue.catchError((Object _) {}).then((_) async {
+      try {
+        await db.save(snapshot);
+        if (mounted && _saveError != null) setState(() => _saveError = null);
+      } catch (error) {
+        if (mounted) setState(() => _saveError = 'Could not save changes. Please retry.');
+      }
+    });
+  }
+
   int _selected = 0;
   static const _titles = ['Today', 'Planner', 'Goals', 'Insights'];
   static const _icons = [
@@ -101,6 +145,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                           }
                           _selected = 0;
                         });
+                        _persist();
                         Navigator.pop(sheetContext);
                       },
                       icon: Icon(entry == null ? Icons.add : Icons.save_outlined),
@@ -140,6 +185,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     );
     if (confirmed == true && mounted) {
       setState(() => _store.remove(entry.id));
+      _persist();
     }
   }
 
@@ -160,7 +206,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               context: context,
               applicationName: 'HabitFlow',
               children: [
-                const Text('Phase 03D: items are saved for this session only.'),
+                Text(widget.database == null
+                    ? 'Preview mode: items are saved for this session only.'
+                    : 'Phase 03E: items are saved locally on this device.'),
               ],
             ),
           ),
@@ -255,6 +303,10 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                 ),
               ),
             ),
+            if (_saveError != null) ...[
+              Text(_saveError!, style: TextStyle(color: theme.colorScheme.error)),
+              TextButton(onPressed: _persist, child: const Text('Retry saving')),
+            ],
             const SizedBox(height: 20),
             Text('Tasks', style: theme.textTheme.titleLarge),
             const SizedBox(height: 8),
@@ -268,8 +320,8 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
             ...habits.map((item) => _entryTile(item)),
             const SizedBox(height: 16),
             const Text(
-              'Preview only: tasks, habits and progress reset when the app '
-              'restarts. Offline storage is planned for Phase 03E.',
+              'Tasks and habits are stored locally on this device when storage '
+              'is available. There is no cloud backup or sync.',
             ),
           ],
         ),
@@ -289,9 +341,10 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                     ? 'Daily habit · session only'
                     : 'Saved for this session only'),
                 controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (checked) => setState(
-                  () => _store.setCompleted(item.id, checked == true),
-                ),
+                onChanged: (checked) {
+                  setState(() => _store.setCompleted(item.id, checked == true));
+                  _persist();
+                },
               ),
             ),
             IconButton(
