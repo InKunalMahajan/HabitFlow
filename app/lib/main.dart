@@ -77,6 +77,27 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     }
   }
 
+  Future<void> _checkNotificationStatus() async {
+    String message;
+    try {
+      final service = HabitNotificationService.instance;
+      if (!service.supported) {
+        message = 'Notifications are available only on iPhone and Android.';
+      } else {
+        final allowed = await service.notificationsAllowed();
+        message = allowed
+            ? 'Notifications are allowed in device settings.'
+            : 'Notifications are not allowed. Enable them in your phone settings.';
+      }
+    } catch (_) {
+      message = 'Could not read notification permission. Check phone settings.';
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _refreshHabitNotification(int habitId, String title) async {
     final reminder = _reminders[habitId];
     if (reminder == null) return;
@@ -672,6 +693,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               Icons.flag_outlined,
             ),
             const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _checkNotificationStatus,
+              icon: const Icon(Icons.notifications_outlined),
+              label: const Text('Check notification permission'),
+            ),
+            const SizedBox(height: 8),
             const Text('Daily notifications require permission and device setup. Times are approximate on Android.'),
             const SizedBox(height: 20),
             Semantics(
