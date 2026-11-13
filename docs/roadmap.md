@@ -29,7 +29,7 @@ Updated: 2026-11-14
 | 03D | Task/habit CRUD, daily completion, input validation, widget/unit tests | Implemented in GitHub; local analyzer/tests/device verification pending |
 | 03E | SQLite v1 database, load/save entries and habit dates | iPhone task persistence after full app restart confirmed by user (2026-11-14); Android and migration verification pending |
 | 03F | Planner scheduled dates, goals with progress, SQLite v2 migration | All 8 iPhone acceptance tests passed, including migration and restart persistence (user-reported 2026-11-14); Android verification pending |
-| 03G | Accessibility audit, responsive device checks, CI | Pending |
+| 03G | Semantic headings/progress, adaptive navigation, accessibility regression tests, CI | Implemented in GitHub; Flutter CI, VoiceOver, TalkBack and device audit pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
@@ -42,7 +42,7 @@ After the Phase 03B–03C GitHub updates:
 - `flutter run -d chrome`: **failed** to establish the debugging WebSocket connection, followed by a missing temporary `app.dill.incremental.dill` file. Browser runtime is **not verified**.
 - Xcode 27.2 is installed and selected at `/Applications/Xcode.app/Contents/Developer`.
 - Simulator.app is absent at the checked Xcode path; `xcrun simctl list devices available` and `xcrun simctl list runtimes` returned empty lists. iOS runtime download and simulator setup are pending.
-- The project owner confirmed GitHub synchronization succeeded. The iOS simulator runtime download was started and is still taking time; installation completion is not confirmed.\n- No iOS app run, Android device run, accessibility audit, or persistence verification is claimed.
+- The project owner confirmed GitHub synchronization succeeded. The iOS simulator runtime download was started and is still taking time; installation completion is not confirmed.\n- This paragraph describes older Phase 03C evidence. Later user-reported iPhone Phase 03E/03F persistence and migration tests are documented in the phase table above. Android runtime and formal accessibility audit are still pending.
 
 ## Next development sequence
 
@@ -56,6 +56,6 @@ After the Phase 03B–03C GitHub updates:
 
 ## Scope and honesty
 
-The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter Today preview uses in-memory data that resets on restart. Planner, Goals and Insights are placeholders. No real reminders, secure finance ledger, sync or persistent storage are shipped.
+The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights remains a placeholder. No reminders, secure finance ledger, cloud sync, or cloud backup are shipped.
 
 See [Phase 03 foundation](roadmap/phase-03-flutter-foundation.md), [screen registry](design/screen-registry.md), and [test plan](testing/test-plan.md).
