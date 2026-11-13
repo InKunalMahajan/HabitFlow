@@ -34,6 +34,7 @@ Updated: 2026-11-14
 | 03I | Habit streaks, seven-day visual activity and unit tests | Implemented in GitHub; local analyzer, tests and device verification pending |
 | 03J | Habit history date picker, edit check-ins with confirmation, widget test | Implemented in GitHub; local analyzer, tests and device verification pending |
 | 03K | Habit reminder time preferences, SQLite v3 migration and validation tests | Implemented in GitHub; notifications not enabled; local analyzer, tests and device verification pending |
+| 03L | Next reminder calculation, upcoming schedule preview, boundary tests | Implemented in GitHub; native notification delivery not implemented; local tests and device verification pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
