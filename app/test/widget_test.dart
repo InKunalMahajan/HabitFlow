@@ -32,6 +32,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('entry-name')), 'Stretch');
     await tester.tap(find.text('Add item'));
     await tester.pumpAndSettle();
+    expect(find.text('Stretch'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.insights_outlined).first);
     await tester.pumpAndSettle();
     // Insights uses a lazily built ListView; the history action is below
@@ -41,6 +42,7 @@ void main() {
       250,
       scrollable: find.byType(Scrollable).first,
     );
+    expect(find.text('Stretch'), findsOneWidget);
     expect(find.text('Edit history'), findsOneWidget);
     await tester.tap(find.text('Edit history'));
     await tester.pumpAndSettle();
