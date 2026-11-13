@@ -147,7 +147,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                           if (picked != null) updateSheet(() => scheduled = picked);
                         },
                         icon: const Icon(Icons.event),
-                        label: Text(scheduled == null ? 'Schedule date' : 'Scheduled: \${dateKey(scheduled!)}'),
+                        label: Text(scheduled == null ? 'Schedule date' : 'Scheduled: ${dateKey(scheduled!)}'),
                       ),
                       if (scheduled != null)
                         TextButton(onPressed: () => updateSheet(() => scheduled = null),
@@ -382,7 +382,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                 title: Text(item.title),
                 subtitle: Text(item.kind == EntryKind.habit
                     ? 'Daily habit'
-                    : item.scheduledDay == null ? 'No scheduled date' : 'Scheduled: \${item.scheduledDay}'),
+                    : item.scheduledDay == null ? 'No scheduled date' : 'Scheduled: ${item.scheduledDay}'),
                 controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (checked) {
                   setState(() => _store.setCompleted(item.id, checked == true));
