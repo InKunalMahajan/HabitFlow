@@ -34,6 +34,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.insights_outlined).first);
     await tester.pumpAndSettle();
+    // Insights uses a lazily built ListView; the history action is below
+    // the initial viewport on smaller screens.
+    await tester.scrollUntilVisible(
+      find.text('Edit history'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Edit history'), findsOneWidget);
     await tester.tap(find.text('Edit history'));
     await tester.pumpAndSettle();
