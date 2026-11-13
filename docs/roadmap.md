@@ -28,7 +28,7 @@ Updated: 2026-11-14
 | 03C | Today preview, task completion, quick add, widget tests | Implemented; locally verified by analyze/tests |
 | 03D | Task/habit CRUD, daily completion, input validation, widget/unit tests | Implemented in GitHub; local analyzer/tests/device verification pending |
 | 03E | SQLite v1 database, load/save entries and habit dates | iPhone task persistence after full app restart confirmed by user (2026-11-14); Android and migration verification pending |
-| 03F | Planner scheduled dates, goals with progress, SQLite v2 migration | Implemented in GitHub; local analyzer, tests and device verification pending |
+| 03F | Planner scheduled dates, goals with progress, SQLite v2 migration | All 8 iPhone acceptance tests passed, including migration and restart persistence (user-reported 2026-11-14); Android verification pending |
 | 03G | Accessibility audit, responsive device checks, CI | Pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
