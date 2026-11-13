@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'features/backup/habitflow_backup.dart';
+import 'features/backup/backup_file_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/entries/entry_store.dart';
 import 'features/entries/entry_database.dart';
@@ -228,6 +229,51 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                       },
                       icon: const Icon(Icons.copy),
                       label: const Text('Copy backup JSON'),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await _saveQueue;
+                          final backup = await db.exportBackup();
+                          final shared = await const BackupFileService().export(backup);
+                          if (dialogContext.mounted && shared) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              const SnackBar(content: Text('Backup shared. Check that you saved the JSON file securely.')),
+                            );
+                          }
+                        } catch (_) {
+                          if (dialogContext.mounted) {
+                            updateDialog(() => error = 'Could not share backup file.');
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.ios_share),
+                      label: const Text('Export JSON file'),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          final selected = await const BackupFileService().import();
+                          if (selected != null && dialogContext.mounted) {
+                            updateDialog(() {
+                              preview = selected;
+                              input.text = selected.encode();
+                              error = null;
+                            });
+                          }
+                        } catch (_) {
+                          if (dialogContext.mounted) {
+                            updateDialog(() {
+                              preview = null;
+                              error = 'Could not open or validate the selected JSON file. No data changed.';
+                            });
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.file_open_outlined),
+                      label: const Text('Import JSON file'),
                     ),
                     const SizedBox(height: 12),
                     TextField(
