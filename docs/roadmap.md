@@ -29,7 +29,7 @@ Updated: 2026-11-14
 | 03D | Task/habit CRUD, daily completion, input validation, widget/unit tests | Implemented in GitHub; local analyzer/tests/device verification pending |
 | 03E | SQLite v1 database, load/save entries and habit dates | iPhone task persistence after full app restart confirmed by user (2026-11-14); Android and migration verification pending |
 | 03F | Planner scheduled dates, goals with progress, SQLite v2 migration | All 8 iPhone acceptance tests passed, including migration and restart persistence (user-reported 2026-11-14); Android verification pending |
-| 03G | Semantic headings/progress, adaptive navigation, accessibility regression tests, CI | Implemented in GitHub; Flutter CI, VoiceOver, TalkBack and device audit pending |
+| 03G | Semantic headings/progress, adaptive navigation, accessibility regression tests, CI | Local Flutter analyzer and tests passed (user-reported 2026-11-14); CI, VoiceOver, TalkBack and device audit pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
