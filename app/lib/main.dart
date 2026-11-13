@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/services.dart';
+import 'features/backup/habitflow_backup.dart';
 import 'core/theme/app_theme.dart';
 import 'features/entries/entry_store.dart';
 import 'features/entries/entry_database.dart';
@@ -179,6 +181,157 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     });
   }
 
+
+  Future<void> _openBackupDialog() async {
+    final db = widget.database;
+    if (db == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Backups require local storage.')),
+      );
+      return;
+    }
+    await _saveQueue;
+    if (!mounted) return;
+    final input = TextEditingController();
+    HabitFlowBackup? preview;
+    String? error;
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (dialogContext, updateDialog) => AlertDialog(
+            title: const Text('Backup and restore'),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Copy a JSON backup to a safe location. '
+                        'To restore, paste backup JSON and preview it first.'),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await _saveQueue;
+                          final backup = await db.exportBackup();
+                          await Clipboard.setData(ClipboardData(text: backup.encode()));
+                          if (dialogContext.mounted) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
+                              const SnackBar(content: Text('Backup copied. Save it securely outside the app.')),
+                            );
+                          }
+                        } catch (_) {
+                          updateDialog(() => error = 'Could not export backup.');
+                        }
+                      },
+                      icon: const Icon(Icons.copy),
+                      label: const Text('Copy backup JSON'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: input,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        labelText: 'Paste backup JSON',
+                        hintText: 'Paste your saved HabitFlow backup',
+                      ),
+                      onChanged: (_) => updateDialog(() {
+                        preview = null;
+                        error = null;
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: () {
+                        try {
+                          final candidate = HabitFlowBackup.decode(input.text);
+                          updateDialog(() {
+                            preview = candidate;
+                            error = null;
+                          });
+                        } catch (_) {
+                          updateDialog(() {
+                            preview = null;
+                            error = 'Invalid or unsupported backup. No data changed.';
+                          });
+                        }
+                      },
+                      child: const Text('Preview backup'),
+                    ),
+                    if (preview != null) ...[
+                      const SizedBox(height: 8),
+                      Text('Backup contains ${preview!.entries.length} items, '
+                          '${preview!.goals.length} goals, and '
+                          '${preview!.reminders.length} reminders.'),
+                      const Text('Restoring will REPLACE all current tasks, '
+                          'habits, goals and reminder preferences.'),
+                      FilledButton(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: dialogContext,
+                            builder: (confirmationContext) => AlertDialog(
+                              title: const Text('Replace all local data?'),
+                              content: const Text('This replaces your current '
+                                  'HabitFlow data. This action cannot be undone. '
+                                  'Save a separate backup first.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(confirmationContext, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(confirmationContext, true),
+                                  child: const Text('Replace my data'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed != true) return;
+                          try {
+                            await _saveQueue;
+                            await db.restoreBackup(preview!);
+                            final entries = await db.load();
+                            final goals = await db.loadGoals();
+                            final reminders = await db.loadReminders();
+                            if (!mounted) return;
+                            setState(() {
+                              _store.restore(entries);
+                              _goals..clear()..addAll(goals);
+                              _reminders..clear()..addAll(reminders);
+                              _saveError = null;
+                            });
+                            if (dialogContext.mounted) Navigator.pop(dialogContext);
+                            await _restoreDeviceReminders();
+                          } catch (_) {
+                            updateDialog(() => error =
+                                'Restore failed. Database changes were rolled back.');
+                          }
+                        },
+                        child: const Text('Restore backup'),
+                      ),
+                    ],
+                    if (error != null)
+                      Semantics(liveRegion: true, child: Text(error!)),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      input.dispose();
+    }
+  }
+
   int _selected = 0;
   static const _titles = ['Today', 'Planner', 'Goals', 'Insights'];
   static const _icons = [
@@ -349,6 +502,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
       appBar: AppBar(
         title: const Text('HabitFlow'),
         actions: [
+          if (widget.database != null)
+            IconButton(
+              tooltip: 'Backup and restore',
+              icon: const Icon(Icons.backup_outlined),
+              onPressed: _openBackupDialog,
+            ),
           IconButton(
             tooltip: 'About this preview',
             icon: const Icon(Icons.info_outline),
