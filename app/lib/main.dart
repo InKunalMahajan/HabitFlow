@@ -765,7 +765,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
         await _saveQueue;
         await db.saveReminder(setting);
       } catch (_) {
-        if (mounted) setState(() => _saveError = 'Could not save reminder time.');
+        if (mounted) {
+          setState(() => _saveError = 'Could not save reminder time.');
+        }
         return;
       }
     }
@@ -791,7 +793,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
         await _saveQueue;
         await db.deleteReminder(habit.id);
       } catch (_) {
-        if (mounted) setState(() => _saveError = 'Could not remove reminder time.');
+        if (mounted) {
+          setState(() => _saveError = 'Could not remove reminder time.');
+        }
         return;
       }
     }
@@ -799,7 +803,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     try {
       await HabitNotificationService.instance.cancel(habit.id);
     } catch (_) {
-      if (mounted) setState(() => _saveError = 'Reminder cleared, but device notification cancellation failed.');
+      if (mounted) {
+        setState(() => _saveError = 'Reminder cleared, but device notification cancellation failed.');
+      }
     }
   }
 
