@@ -37,7 +37,6 @@ void main() {
   testWidgets('task controls have text tooltips and progress semantics', (tester) async {
     await tester.pumpWidget(const HabitFlowApp());
     final handle = tester.ensureSemantics();
-    addTearDown(handle.dispose);
     expect(find.byTooltip('Edit Plan tomorrow'), findsOneWidget);
     expect(find.byTooltip('Delete Plan tomorrow'), findsOneWidget);
     expect(
@@ -45,6 +44,7 @@ void main() {
           widget is Semantics && widget.properties.label == 'Daily progress'),
       findsOneWidget,
     );
+    handle.dispose();
   });
 
   testWidgets('large text retains navigation and primary action', (tester) async {
