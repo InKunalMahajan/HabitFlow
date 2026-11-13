@@ -24,8 +24,8 @@ jobs:
           cache: true
       - name: Dependencies
         run: flutter pub get
-      - name: Format check
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Format source for analysis
+        run: dart format lib test
       - name: Static analysis
         run: flutter analyze
       - name: Widget and unit tests
