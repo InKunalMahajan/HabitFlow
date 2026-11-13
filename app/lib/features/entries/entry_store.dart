@@ -7,6 +7,7 @@ class FlowEntry {
     required this.kind,
     this.completed = false,
     this.completedDates = const {},
+    this.scheduledDay,
   });
 
   final int id;
@@ -14,14 +15,16 @@ class FlowEntry {
   final EntryKind kind;
   final bool completed;
   final Set<String> completedDates;
+  final String? scheduledDay;
 
-  FlowEntry copyWith({String? title, bool? completed, Set<String>? completedDates}) =>
+  FlowEntry copyWith({String? title, bool? completed, Set<String>? completedDates, String? scheduledDay, bool clearScheduledDay = false}) =>
       FlowEntry(
         id: id,
         title: title ?? this.title,
         kind: kind,
         completed: completed ?? this.completed,
         completedDates: completedDates ?? this.completedDates,
+        scheduledDay: clearScheduledDay ? null : scheduledDay ?? this.scheduledDay,
       );
 }
 
@@ -41,12 +44,12 @@ class EntryStore {
     _nextId = entries.fold<int>(0, (maxId, item) => item.id > maxId ? item.id : maxId) + 1;
   }
 
-  FlowEntry add(String title, EntryKind kind) {
+  FlowEntry add(String title, EntryKind kind, {String? scheduledDay}) {
     final normalized = title.trim();
     if (normalized.isEmpty || normalized.length > 120) {
       throw ArgumentError('Enter a name between 1 and 120 characters.');
     }
-    final entry = FlowEntry(id: _nextId++, title: normalized, kind: kind);
+    final entry = FlowEntry(id: _nextId++, title: normalized, kind: kind, scheduledDay: scheduledDay);
     _items.add(entry);
     return entry;
   }
@@ -59,6 +62,14 @@ class EntryStore {
     final index = _items.indexWhere((item) => item.id == id);
     if (index < 0) return false;
     _items[index] = _items[index].copyWith(title: normalized);
+    return true;
+  }
+
+  bool schedule(int id, String? day) {
+    final index = _items.indexWhere((item) => item.id == id);
+    if (index < 0 || _items[index].kind != EntryKind.task) return false;
+    _items[index] = _items[index].copyWith(
+      scheduledDay: day, clearScheduledDay: day == null);
     return true;
   }
 
