@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'core/theme/app_theme.dart';
 import 'features/entries/entry_store.dart';
 import 'features/entries/entry_database.dart';
+import 'features/insights/insight_summary.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -284,7 +285,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               0 => _todayPage(context),
               1 => _plannerPage(context),
               2 => _goalsPage(context),
-              _ => _placeholderPage(context, _titles[_selected]),
+              _ => _insightsPage(context),
             },
           ),
         ],
@@ -556,21 +557,98 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     ],
   );
 
-  Widget _placeholderPage(BuildContext context, String title) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.construction_outlined,
-                  size: 48, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 16),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              const Text('This feature is planned for a future phase.',
-                  textAlign: TextAlign.center),
-            ],
-          ),
+  Widget _insightsPage(BuildContext context) {
+    final summary = InsightSummary.calculate(
+      entries: _store.items,
+      goals: _goals,
+      now: DateTime.now(),
+    );
+    final theme = Theme.of(context);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 880),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 112),
+          children: [
+            Semantics(
+              header: true,
+              child: Text('Insights', style: theme.textTheme.headlineMedium),
+            ),
+            const SizedBox(height: 8),
+            const Text('Your progress, based on data saved on this device.'),
+            const SizedBox(height: 16),
+            _insightCard(
+              context,
+              'Tasks',
+              '${summary.tasksCompleted} of ${summary.taskTotal} completed',
+              summary.taskRate,
+              Icons.check_circle_outline,
+            ),
+            _insightCard(
+              context,
+              'Habits today',
+              '${summary.habitsDoneToday} of ${summary.habitTotal} completed',
+              summary.habitRateToday,
+              Icons.repeat,
+            ),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.date_range_outlined),
+                title: const Text('Habit activity — last 7 days'),
+                subtitle: Text('${summary.habitCompletionsLast7Days} check-ins'),
+              ),
+            ),
+            _insightCard(
+              context,
+              'Goals',
+              '${summary.goalsCompleted} of ${summary.goalTotal} reached',
+              summary.goalRate,
+              Icons.flag_outlined,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Task completion is the current total, not a daily history. '
+              'Habit activity counts check-ins from today and the previous six days. '
+              'Goal progress shows goals that reached their target. '
+              'No data is uploaded.',
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
+
+  Widget _insightCard(
+    BuildContext context,
+    String title,
+    String detail,
+    double progress,
+    IconData icon,
+  ) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(icon),
+            const SizedBox(width: 12),
+            Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+          ]),
+          const SizedBox(height: 8),
+          Text(detail),
+          const SizedBox(height: 12),
+          Semantics(
+            label: '$title progress',
+            value: detail,
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
