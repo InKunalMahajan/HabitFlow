@@ -8,6 +8,7 @@ import 'features/reminders/reminder_settings.dart';
 import 'features/reminders/reminder_schedule.dart';
 import 'features/reminders/habit_notification_service.dart';
 import 'features/reminders/reminder_reconciliation.dart';
+import 'features/reminders/notification_sync_plan.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -128,9 +129,18 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
         }
         _reminders.remove(id);
       }
-      if (!await service.notificationsAllowed()) return;
+      final allowed = await service.notificationsAllowed();
+      final sync = NotificationSyncPlan.build(
+        entries: _store.items,
+        saved: plan.active,
+        pendingIds: await service.pendingReminderIds(),
+        permissionGranted: allowed,
+      );
+      for (final id in sync.toCancel) {
+        await service.cancel(id);
+      }
       for (final entry in _store.items.where((e) => e.kind == EntryKind.habit)) {
-        final reminder = plan.active[entry.id];
+        final reminder = sync.toSchedule[entry.id];
         if (reminder != null) {
           await service.scheduleDaily(reminder, entry.title);
         }
