@@ -236,6 +236,8 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     final wide = width >= 600;
     final expanded = width >= 840;
     final scheme = Theme.of(context).colorScheme;
+    final textScale = MediaQuery.textScalerOf(context).scale(14);
+    final compact = width < 380 || textScale > 21;
     return Scaffold(
       appBar: AppBar(
         title: const Text('HabitFlow'),
@@ -255,7 +257,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
           ),
         ],
       ),
-      body: Row(
+      body: SafeArea(
+        bottom: false,
+        child: Row(
         children: [
           if (wide)
             NavigationRail(
@@ -285,12 +289,14 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
           ),
         ],
       ),
+      ),
       bottomNavigationBar: wide
           ? null
           : NavigationBar(
               selectedIndex: _selected,
               onDestinationSelected: (index) =>
                   setState(() => _selected = index),
+              labelBehavior: compact ? NavigationDestinationLabelBehavior.onlyShowSelected : NavigationDestinationLabelBehavior.alwaysShow,
               destinations: List.generate(
                 _titles.length,
                 (index) => NavigationDestination(
@@ -299,12 +305,13 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _selected == 0 || _selected == 1
+          ? FloatingActionButton.extended(
         tooltip: 'Add a task or habit',
         onPressed: _editEntry,
         icon: const Icon(Icons.add),
         label: const Text('Add'),
-      ),
+      ) : null,
     );
   }
 
@@ -319,7 +326,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 112),
           children: [
-            Text('Today', style: theme.textTheme.headlineMedium),
+            Semantics(header: true, child: Text('Today', style: theme.textTheme.headlineMedium)),
             const SizedBox(height: 8),
             const Text('Your day, one step at a time.'),
             const SizedBox(height: 20),
@@ -352,12 +359,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               TextButton(onPressed: _persist, child: const Text('Retry saving')),
             ],
             const SizedBox(height: 20),
-            Text('Tasks', style: theme.textTheme.titleLarge),
+            Semantics(header: true, child: Text('Tasks', style: theme.textTheme.titleLarge)),
             const SizedBox(height: 8),
             if (tasks.isEmpty) const Text('No tasks yet. Tap Add to create one.'),
             ...tasks.map((item) => _entryTile(item)),
             const SizedBox(height: 20),
-            Text('Habits', style: theme.textTheme.titleLarge),
+            Semantics(header: true, child: Text('Habits', style: theme.textTheme.titleLarge)),
             const SizedBox(height: 8),
             if (habits.isEmpty)
               const Text('No habits yet. Tap Add and choose Habit.'),
@@ -412,7 +419,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 112),
       children: [
-        Text('Planner', style: Theme.of(context).textTheme.headlineMedium),
+        Semantics(header: true, child: Text('Planner', style: Theme.of(context).textTheme.headlineMedium)),
         const SizedBox(height: 8),
         const Text('Schedule tasks by day. Edit a task to choose its date.'),
         const SizedBox(height: 16),
@@ -434,10 +441,11 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(controller: controller,
-                decoration: const InputDecoration(labelText: 'Goal name'),
+                decoration: const InputDecoration(labelText: 'Goal name', hintText: 'Example: Read 10 books'),
                 maxLength: 120),
               TextField(controller: targetController,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(labelText: 'Target count')),
             ],
           ),
@@ -469,7 +477,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
   Widget _goalsPage(BuildContext context) => ListView(
     padding: const EdgeInsets.fromLTRB(20, 20, 20, 112),
     children: [
-      Text('Goals', style: Theme.of(context).textTheme.headlineMedium),
+      Semantics(header: true, child: Text('Goals', style: Theme.of(context).textTheme.headlineMedium)),
       const SizedBox(height: 12),
       FilledButton.icon(
         onPressed: _addGoal,
@@ -493,7 +501,11 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                 Text(title, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text('$progress of $target complete'),
-                LinearProgressIndicator(value: (progress / target).clamp(0.0, 1.0)),
+                Semantics(
+                  label: 'Goal progress for $title',
+                  value: '$progress of $target complete',
+                  child: LinearProgressIndicator(value: (progress / target).clamp(0.0, 1.0)),
+                ),
                 Row(children: [
                   IconButton(
                     tooltip: 'Decrease $title',
