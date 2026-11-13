@@ -15,7 +15,9 @@ class ReminderSettings {
     final minute = row['minute'];
     final enabled = row['enabled'];
     if (id is! int || hour is! int || minute is! int ||
-        hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+        hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+      return null;
+    }
     return ReminderSettings(habitId: id, hour: hour, minute: minute, enabled: enabled == 1);
   }
 
