@@ -128,7 +128,9 @@ class HabitFlowBackup {
     final year = int.parse(match.group(1)!);
     final month = int.parse(match.group(2)!);
     final day = int.parse(match.group(3)!);
-    if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+    if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31) {
+      return false;
+    }
     final parsed = DateTime.utc(year, month, day);
     return parsed.year == year && parsed.month == month && parsed.day == day;
   }
