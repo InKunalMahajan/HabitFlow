@@ -5,6 +5,7 @@ import 'features/entries/entry_database.dart';
 import 'features/insights/insight_summary.dart';
 import 'features/insights/habit_streak.dart';
 import 'features/reminders/reminder_settings.dart';
+import 'features/reminders/reminder_schedule.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -613,7 +614,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               Icons.flag_outlined,
             ),
             const SizedBox(height: 12),
-            const Text('Reminder times are saved locally. Notifications are not enabled yet.'),
+            const Text('Reminder times and next-occurrence previews are local. Phone notifications are not enabled yet.'),
             const SizedBox(height: 20),
             Semantics(
               header: true,
@@ -642,6 +643,11 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
         ),
       ),
     );
+  }
+
+  String _formatNextReminder(ReminderSettings setting) {
+    final next = ReminderSchedule.nextOccurrence(setting, DateTime.now());
+    return '${dateKey(next)} ${setting.timeLabel}';
   }
 
   Future<void> _setHabitReminder(FlowEntry habit) async {
@@ -743,6 +749,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                   ? 'No reminder time set'
                   : 'Daily reminder time: ${_reminders[habit.id]!.timeLabel}',
             ),
+            if (_reminders[habit.id] != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Next reminder time: ${_formatNextReminder(_reminders[habit.id]!)}',
+              ),
+            ],
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
