@@ -1,50 +1,52 @@
 # Phase 03 — Flutter application foundation
 
+Updated: 2026-11-14
+
 ## Delivered to GitHub
+- 03A: Flutter project scaffold in `app/`, Android and Web targets.
+- 03B: Material 3 light/dark themes, adaptive navigation shell and preview disclosure.
+- 03C: Today dashboard with two sample tasks, completion toggles, progress indicator and quick-add task sheet.
+- Widget tests for dashboard, task completion, navigation and quick add.
 
-- 03A Flutter scaffold in `app/` (previously committed by project owner)
-- 03B Material 3 theme, system light/dark mode, app title and preview disclosure
-- 03C responsive shell: bottom navigation below 600dp; rail from 600dp; extended rail from 840dp
-- Today dashboard: two example tasks, progress bar, task completion toggles
-- Quick add: task text entry, nonempty validation, snackbar confirmation
-- Widget tests for Today, completion, navigation and quick add
+## Locally verified by project owner
+- `flutter pub get` succeeded.
+- `dart format lib test`: no changes.
+- `flutter analyze`: no issues.
+- `flutter test`: all tests passed.
 
-## Known limitations
+## Known issues and limitations
+- Chrome debug run failed to establish its WebSocket connection and then reported missing temporary incremental compiler output. Web app runtime is not verified.
+- Xcode 27.2 is installed, but Simulator.app and all iOS simulator runtimes/devices were absent in the latest checks.
+- iOS target generation and iOS runtime testing are pending.
+- Tasks and progress are session-only; no persistence or cloud functionality.
+- Planner, Goals and Insights are placeholders; Add creates session tasks only.
+- No real reminders, finance, wellness, full accessibility audit or 54-screen implementation.
 
-- Session-only state; no persistence or cloud functionality
-- Planner, Goals and Insights show explicit planned-feature placeholders
-- Add currently creates tasks only, not habits or reminders
-- No production notification, finance or wellness workflows
-- No physical-device, emulator, accessibility or web-browser verification has been performed as part of the GitHub connector update
-
-## Verification on a developer machine
-
+## Next local steps
 ```bash
 cd ~/HabitFlow
 git pull origin main
 cd app
-flutter pub get
-dart format lib test
+flutter doctor -v
 flutter analyze
 flutter test
-flutter run -d chrome
+flutter build web --release
 ```
 
-If `dart format` changes files, review and commit the formatting changes.
+After installing an iOS Simulator runtime and confirming it is available:
+```bash
+flutter create --platforms=ios .
+flutter pub get
+flutter devices
+flutter run -d <simulator-device-id>
+```
 
-## Next implementation phases
+Do not run the last command with the literal placeholder: use an actual device ID from `flutter devices`.
 
-- 03D: task/habit entities, validation, state management and repository interfaces
-- 03E: offline persistence with migration and integration tests
-- 03F: calendar/planner, goal screens, feature navigation
-- 03G: accessibility audit, responsive device testing, CI
-- Later phases: secure finance ledger, optional synchronization, notifications and complete 54-screen registry
+## Next implementation
+- 03D: task/habit domain entities, validation and state management.
+- 03E: SQLite offline persistence, migrations and integration tests.
+- 03F: planner and goals.
+- 03G: accessibility, responsive and device verification, CI.
 
-## Acceptance criteria
-
-- No counter demo remains in the application entry point.
-- Today renders on compact and wide layouts.
-- Switching destination changes the visible page.
-- Toggling a task updates the progress label.
-- Quick add adds a nonempty task and identifies the data as session-only.
-- Flutter analysis and widget tests pass locally before calling the phase verified.
+**Acceptance gate:** source committed, analyzer/tests passing, runtime tested on intended platform, and no false claim that session data is saved.
