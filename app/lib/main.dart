@@ -72,6 +72,26 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     }
     _goals.addAll(widget.initialGoals ?? []);
     _reminders.addAll(widget.initialReminders ?? {});
+    if (widget.database != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _restoreDeviceReminders());
+    }
+  }
+
+  Future<void> _restoreDeviceReminders() async {
+    if (!mounted) return;
+    try {
+      await HabitNotificationService.instance.initialize();
+      for (final entry in _store.items.where((e) => e.kind == EntryKind.habit)) {
+        final reminder = _reminders[entry.id];
+        if (reminder != null) {
+          await HabitNotificationService.instance.scheduleDaily(reminder, entry.title);
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saveError = 'Some device reminders could not be restored.');
+      }
+    }
   }
 
   void _persist() {
