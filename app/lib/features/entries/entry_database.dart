@@ -104,6 +104,7 @@ class EntryDatabase {
   /// Atomically replaces the local snapshot, including completion history.
   Future<void> save(List<FlowEntry> entries) async {
     await _db.transaction((txn) async {
+      final reminders = await txn.query('habit_reminders');
       await txn.delete('habit_completions');
       await txn.delete('entries');
       for (final entry in entries) {
@@ -119,6 +120,12 @@ class EntryDatabase {
             'entry_id': entry.id,
             'day': day,
           });
+        }
+      }
+      final habitIds = entries.where((e) => e.kind == EntryKind.habit).map((e) => e.id).toSet();
+      for (final reminder in reminders) {
+        if (habitIds.contains(reminder['habit_id'])) {
+          await txn.insert('habit_reminders', reminder);
         }
       }
     });
