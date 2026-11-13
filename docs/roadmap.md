@@ -33,6 +33,7 @@ Updated: 2026-11-14
 | 03H | On-device Insights dashboard, task/habit/goal statistics and tests | Implemented in GitHub; local analyzer, tests and iPhone/Android verification pending |
 | 03I | Habit streaks, seven-day visual activity and unit tests | Implemented in GitHub; local analyzer, tests and device verification pending |
 | 03J | Habit history date picker, edit check-ins with confirmation, widget test | Implemented in GitHub; local analyzer, tests and device verification pending |
+| 03K | Habit reminder time preferences, SQLite v3 migration and validation tests | Implemented in GitHub; notifications not enabled; local analyzer, tests and device verification pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
@@ -59,6 +60,6 @@ After the Phase 03B–03C GitHub updates:
 
 ## Scope and honesty
 
-The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights shows local task, habit and goal statistics; historical task completion trends are not available. No reminders, secure finance ledger, cloud sync, or cloud backup are shipped.
+The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights shows local task, habit and goal statistics; historical task completion trends are not available. Reminder time preferences are stored locally but no notifications are scheduled or delivered. No secure finance ledger, cloud sync, or cloud backup are shipped.
 
 See [Phase 03 foundation](roadmap/phase-03-flutter-foundation.md), [screen registry](design/screen-registry.md), and [test plan](testing/test-plan.md).
