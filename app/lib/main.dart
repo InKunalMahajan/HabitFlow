@@ -636,6 +636,42 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     );
   }
 
+  Future<void> _editHabitHistory(FlowEntry habit) async {
+    final now = DateTime.now();
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      helpText: 'Choose a habit history date',
+    );
+    if (selected == null || !mounted) return;
+    final completed = habit.completedDates.contains(dateKey(selected));
+    final change = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(habit.title),
+        content: Text(
+          '${dateKey(selected)} is currently ${completed ? 'completed' : 'not completed'}. '
+          'Would you like to mark it ${completed ? 'not completed' : 'completed'}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, !completed),
+            child: Text(completed ? 'Remove check-in' : 'Mark complete'),
+          ),
+        ],
+      ),
+    );
+    if (change == null || !mounted) return;
+    setState(() => _store.setCompleted(habit.id, change, on: selected));
+    _persist();
+  }
+
   Widget _habitStreakCard(BuildContext context, FlowEntry habit) {
     final streak = HabitStreak.fromDates(habit.completedDates, DateTime.now());
     final today = DateTime.now();
@@ -651,6 +687,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
             Text(habit.title, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Text('Current: ${streak.current} days · Longest: ${streak.longest} days'),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () => _editHabitHistory(habit),
+              icon: const Icon(Icons.edit_calendar_outlined),
+              label: const Text('Edit history'),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
