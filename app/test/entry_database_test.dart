@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:habitflow/features/entries/entry_database.dart';
+import 'package:habitflow/features/backup/habitflow_backup.dart';
 import 'package:habitflow/features/entries/entry_store.dart';
 import 'package:habitflow/features/reminders/reminder_settings.dart';
 
@@ -182,4 +183,54 @@ void main() {
     expect((await db.loadGoals()).single['title'], 'Read');
     await db.close();
   });
+  test('atomic backup export and restore replaces all data together', () async {
+    final db = await EntryDatabase.open(databasePath: dbPath);
+    await db.save([
+      const FlowEntry(id: 1, title: 'Old', kind: EntryKind.task),
+    ]);
+    final replacement = HabitFlowBackup(
+      entries: [
+        const FlowEntry(id: 5, title: 'Walk', kind: EntryKind.habit,
+            completedDates: {'2026-11-14'}),
+      ],
+      goals: [
+        {'id': 2, 'title': 'Steps', 'target': 20, 'progress': 4},
+      ],
+      reminders: {
+        5: const ReminderSettings(habitId: 5, hour: 8, minute: 30),
+      },
+    );
+    await db.restoreBackup(replacement);
+    final exported = await db.exportBackup();
+    final roundTrip = HabitFlowBackup.decode(exported.encode());
+    expect(roundTrip.entries.single.title, 'Walk');
+    expect(roundTrip.entries.single.completedDates, {'2026-11-14'});
+    expect(roundTrip.goals.single['progress'], 4);
+    expect(roundTrip.reminders[5]!.timeLabel, '08:30');
+    await db.close();
+  });
+
+  test('invalid backup leaves all existing SQLite data unchanged', () async {
+    final db = await EntryDatabase.open(databasePath: dbPath);
+    await db.save([
+      const FlowEntry(id: 1, title: 'Safe', kind: EntryKind.habit),
+    ]);
+    await db.saveReminder(
+      const ReminderSettings(habitId: 1, hour: 7, minute: 0),
+    );
+    final invalid = HabitFlowBackup(
+      entries: [
+        const FlowEntry(id: 2, title: 'New', kind: EntryKind.task),
+      ],
+      goals: const [],
+      reminders: {
+        2: const ReminderSettings(habitId: 2, hour: 8, minute: 0),
+      },
+    );
+    await expectLater(db.restoreBackup(invalid), throwsFormatException);
+    expect((await db.load()).single.title, 'Safe');
+    expect((await db.loadReminders()).keys, {1});
+    await db.close();
+  });
+
 }
