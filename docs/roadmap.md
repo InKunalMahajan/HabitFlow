@@ -36,6 +36,7 @@ Updated: 2026-11-14
 | 03K | Habit reminder time preferences, SQLite v3 migration and validation tests | Implemented in GitHub; notifications not enabled; local analyzer, tests and device verification pending |
 | 03L | Next reminder calculation, upcoming schedule preview, boundary tests | Implemented in GitHub; native notification delivery not implemented; local tests and device verification pending |
 | 03M | Local iOS/Android notification scheduling, permissions and Android native setup | Implemented in GitHub; builds, permissions and real-device delivery NOT VERIFIED |
+| 03N | Notification permission checks on restart and cancellation on habit deletion | Implemented in GitHub; Flutter build and real-device behavior NOT VERIFIED |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
