@@ -11,6 +11,9 @@ Updated: 2026-11-14
 - Existing SQLite database and goals are loaded before showing the app; changes use the save queue.
 - Widget tests updated for Planner and goal creation.
 
+## Verification update — 2026-11-14
+The project owner reported **all eight iPhone acceptance tests passed**, including preservation of existing data during SQLite v1→v2 migration and persistence of scheduled tasks and goal progress after full app restart. Android verification remains pending. This is user-reported device testing, not independently executed by the assistant.
+
 ## Limits
 - Goals are simple counters; milestones, goal editing, goal-linked tasks, reminders, calendar view, and streaks are not implemented.
 - The app does not sync or back up data.
