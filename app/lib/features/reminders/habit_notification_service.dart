@@ -68,7 +68,7 @@ class HabitNotificationService {
     if (!supported) return;
     await initialize();
     await _plugin.cancel(id: setting.habitId);
-    if (!setting.enabled) return;
+    if (!setting.enabled || !await notificationsAllowed()) return;
     final now = tz.TZDateTime.now(tz.local);
     var at = tz.TZDateTime(
       tz.local, now.year, now.month, now.day, setting.hour, setting.minute,
@@ -98,6 +98,15 @@ class HabitNotificationService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
     );
+  }
+
+  /// Pending IDs belonging to HabitFlow's daily reminder channel.
+  /// The app currently schedules only habit reminders through this plugin.
+  Future<Set<int>> pendingReminderIds() async {
+    if (!supported) return <int>{};
+    await initialize();
+    final pending = await _plugin.pendingNotificationRequests();
+    return pending.map((notification) => notification.id).toSet();
   }
 
   Future<void> cancel(int habitId) async {
