@@ -44,6 +44,8 @@ void main() {
     );
     expect(find.text('Stretch'), findsOneWidget);
     expect(find.text('Edit history'), findsOneWidget);
+    await tester.ensureVisible(find.text('Edit history'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Edit history'));
     await tester.pumpAndSettle();
     expect(find.text('Choose a habit history date'), findsOneWidget);
