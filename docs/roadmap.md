@@ -31,6 +31,7 @@ Updated: 2026-11-14
 | 03F | Planner scheduled dates, goals with progress, SQLite v2 migration | All 8 iPhone acceptance tests passed, including migration and restart persistence (user-reported 2026-11-14); Android verification pending |
 | 03G | Semantic headings/progress, adaptive navigation, accessibility regression tests, CI | Local Flutter analyzer and tests passed (user-reported 2026-11-14); CI, VoiceOver, TalkBack and device audit pending |
 | 03H | On-device Insights dashboard, task/habit/goal statistics and tests | Implemented in GitHub; local analyzer, tests and iPhone/Android verification pending |
+| 03I | Habit streaks, seven-day visual activity and unit tests | Implemented in GitHub; local analyzer, tests and device verification pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
