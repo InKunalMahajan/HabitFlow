@@ -1,37 +1,61 @@
-# HabitFlow Roadmap
+# HabitFlow — Master Roadmap
 
-## Completed planning work (not production implementation)
-- Phase 01: SRS, logical database and technical architecture drafts.
-- Phase 02B: Material 3 design system proposal.
-- Phase 02C: Canonical 54-screen functional registry.
-- Phase 02D: Initial eight-view interactive demonstration.
-- Phase 02E: UX audit and prioritized defects.
-- Phase 02F: Critical correction demonstration, not fully tested.
-- Phase 02G: Navigation/component standardization.
-- Phase 02H: 54-ID design navigator with partial/placeholder screens.
+Updated: 2026-11-14
 
-## Next
-- Phase 02I: structured accessibility/usability validation with evidence.
-- Phase 02J: close P0/P1 design issues, reconcile registry, final design approval.
-- Only after explicit authorization: Flutter project initialization and implementation.
+## Status legend
+- **Implemented:** code committed to GitHub
+- **Locally verified:** user ran and reported passing checks
+- **Pending:** not implemented, not verified, or blocked
 
-## Implementation waves (future)
-1. Onboarding, Today, habits, tasks, reminders (S001–S017).
-2. Planner, projects, goals (S018–S027).
-3. Journal, focus, templates (S028–S032, S043–S045).
-4. Finance and wellness (S033–S042).
-5. Insights, sync, settings (S046–S054).
+## Phase status
 
-Private testing release only after accessibility, security, financial correctness and sync recovery gates.
+| Phase | Scope | Status |
+| --- | --- | --- |
+| 01 | SRS, architecture, logical data model | Drafted |
+| 02B | Material 3 design proposal | Documented |
+| 02C | 54-screen registry | Documented |
+| 02D | Initial interactive HTML demonstration | Prototype implemented |
+| 02E | UX audit and defect priorities | Documented |
+| 02F | Critical design corrections | Prototype implemented; verification incomplete |
+| 02G | Navigation/component design standardization | Prototype implemented |
+| 02H | 54-ID design navigator | Prototype implemented; many placeholders |
+| 02I-A | Prototype correction pass | Committed; manual validation pending |
+| 02I-C | Screen workflow expansion | Committed; manual validation pending |
+| 02I-D | Browser regression test preparation | Committed; tests not confirmed executed |
+| 02J | Design acceptance and issue closure | Pending |
+| 03A | Flutter Android/Web scaffold | Implemented; locally verified |
+| 03B | Material 3 theme and adaptive navigation | Implemented; locally verified by analyze/tests |
+| 03C | Today preview, task completion, quick add, widget tests | Implemented; locally verified by analyze/tests |
+| 03D | Habit/task domain entities and state management | Pending |
+| 03E | Offline persistence and migrations | Pending |
+| 03F | Planner, goals and feature navigation | Pending |
+| 03G | Accessibility audit, responsive device checks, CI | Pending |
+| iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Blocked/pending |
 
-## Phase 02I-A — Prototype corrections (2026-11-13)
+## Verification evidence (reported by project owner)
 
-Committed [corrected HTML design demo](../prototype/index.html), [design notes](design/phase-02i-a.md) and [verification checklist](testing/phase-02i-a-verification.md). P0 design corrections implemented in a simulated browser prototype; **not yet tested**. P1 screen-specific coverage and full accessibility remain incomplete. Flutter installation is still on hold.
+After the Phase 03B–03C GitHub updates:
+- `flutter pub get`: succeeded; package update notices are informational.
+- `dart format lib test`: 2 files formatted, 0 changed.
+- `flutter analyze`: no issues found.
+- `flutter test`: all tests passed.
+- `flutter run -d chrome`: **failed** to establish the debugging WebSocket connection, followed by a missing temporary `app.dill.incremental.dill` file. Browser runtime is **not verified**.
+- Xcode 27.2 is installed and selected at `/Applications/Xcode.app/Contents/Developer`.
+- Simulator.app is absent at the checked Xcode path; `xcrun simctl list devices available` and `xcrun simctl list runtimes` returned empty lists. iOS runtime download and simulator setup are pending.
+- No iOS app run, Android device run, accessibility audit, or persistence verification is claimed.
 
-## Phase 02I-C — Screen workflow expansion (2026-11-13)
+## Next development sequence
 
-Committed [expanded HTML prototype](../prototype/index.html), [implementation scope and limitations](design/phase-02i-c.md), and [26-case manual test checklist](testing/phase-02i-c-verification.md). Interactions are temporary browser demonstrations; all tests remain NOT RUN or BLOCKED. Not all 54 screens are fully interactive. Phase 02J approval is pending. Flutter remains on hold.
+1. Finish iOS simulator runtime installation and check `flutter doctor -v`.
+2. From `app/`, run `flutter create --platforms=ios .` after Xcode setup, then `flutter pub get`.
+3. Run the iOS Simulator and `flutter run -d <device-id>`; resolve any code signing/build issues.
+4. Diagnose Chrome debugger failure separately; test `flutter build web --release`.
+5. Implement Phase 03D domain model and Phase 03E offline persistence with tests.
+6. Complete functional screens in implementation waves: S001–S017; S018–S027; S028–S032 and S043–S045; S033–S042; S046–S054.
+7. Conduct accessibility, privacy, financial correctness, sync recovery and real-device testing before any production release.
 
-## Phase 02I-D — Browser regression audit preparation (2026-11-13)
+## Scope and honesty
 
-Updated [HTML prototype](../prototype/index.html) to clear stale editor navigation and preserve completed state on edits. Added [Node source-contract tests](../tests/prototype-static.test.mjs) and [browser/accessibility audit plan](testing/phase-02i-d-audit.md). **Tests not executed**; this is not a device/browser pass. Phase 02J remains pending. Flutter installation remains on hold.
+The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter Today preview uses in-memory data that resets on restart. Planner, Goals and Insights are placeholders. No real reminders, secure finance ledger, sync or persistent storage are shipped.
+
+See [Phase 03 foundation](roadmap/phase-03-flutter-foundation.md), [screen registry](design/screen-registry.md), and [test plan](testing/test-plan.md).
