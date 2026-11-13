@@ -13,14 +13,15 @@ class EntryDatabase {
     final root = await getDatabasesPath();
     final db = await openDatabase(
       p.join(root, 'habitflow.db'),
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE entries (
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
             kind TEXT NOT NULL CHECK (kind IN ('task', 'habit')),
-            completed INTEGER NOT NULL DEFAULT 0
+            completed INTEGER NOT NULL DEFAULT 0,
+            scheduled_day TEXT
           )
         ''');
         await db.execute('''
@@ -31,6 +32,27 @@ class EntryDatabase {
             FOREIGN KEY (entry_id) REFERENCES entries(id) ON DELETE CASCADE
           )
         ''');
+        await db.execute('''
+          CREATE TABLE goals (
+            id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            target INTEGER NOT NULL CHECK (target > 0),
+            progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0)
+          )
+        ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE entries ADD COLUMN scheduled_day TEXT');
+          await db.execute('''
+            CREATE TABLE goals (
+              id INTEGER PRIMARY KEY,
+              title TEXT NOT NULL,
+              target INTEGER NOT NULL CHECK (target > 0),
+              progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0)
+            )
+          ''');
+        }
       },
       onConfigure: (db) async => db.execute('PRAGMA foreign_keys = ON'),
     );
@@ -53,6 +75,7 @@ class EntryDatabase {
         kind: row['kind'] == 'habit' ? EntryKind.habit : EntryKind.task,
         completed: row['completed'] == 1,
         completedDates: byId[id] ?? <String>{},
+        scheduledDay: row['scheduled_day'] as String?,
       );
     }).toList();
   }
@@ -68,6 +91,7 @@ class EntryDatabase {
           'title': entry.title,
           'kind': entry.kind.name,
           'completed': entry.completed ? 1 : 0,
+          'scheduled_day': entry.scheduledDay,
         });
         for (final day in entry.completedDates) {
           await txn.insert('habit_completions', {
@@ -75,6 +99,18 @@ class EntryDatabase {
             'day': day,
           });
         }
+      }
+    });
+  }
+
+  Future<List<Map<String, Object?>>> loadGoals() =>
+      _db.query('goals', orderBy: 'id ASC');
+
+  Future<void> saveGoals(List<Map<String, Object?>> goals) async {
+    await _db.transaction((txn) async {
+      await txn.delete('goals');
+      for (final goal in goals) {
+        await txn.insert('goals', goal);
       }
     });
   }
