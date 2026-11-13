@@ -27,3 +27,7 @@ Private testing release only after accessibility, security, financial correctnes
 ## Phase 02I-A — Prototype corrections (2026-11-13)
 
 Committed [corrected HTML design demo](../prototype/index.html), [design notes](design/phase-02i-a.md) and [verification checklist](testing/phase-02i-a-verification.md). P0 design corrections implemented in a simulated browser prototype; **not yet tested**. P1 screen-specific coverage and full accessibility remain incomplete. Flutter installation is still on hold.
+
+## Phase 02I-C — Screen workflow expansion (2026-11-13)
+
+Committed [expanded HTML prototype](../prototype/index.html), [implementation scope and limitations](design/phase-02i-c.md), and [26-case manual test checklist](testing/phase-02i-c-verification.md). Interactions are temporary browser demonstrations; all tests remain NOT RUN or BLOCKED. Not all 54 screens are fully interactive. Phase 02J approval is pending. Flutter remains on hold.
