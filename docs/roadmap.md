@@ -38,6 +38,7 @@ Updated: 2026-11-14
 | 03M | Local iOS/Android notification scheduling, permissions and Android native setup | Implemented in GitHub; builds, permissions and real-device delivery NOT VERIFIED |
 | 03N | Notification permission checks on restart and cancellation on habit deletion | Implemented in GitHub; Flutter build and real-device behavior NOT VERIFIED |
 | 03O | Notification permission status control and reminder text refresh on habit rename | Implemented in GitHub; local analyzer, tests and device delivery NOT VERIFIED |
+| 03P | Reminder reconciliation, orphan cleanup on startup and unit tests | Implemented in GitHub; Flutter analysis and device tests NOT VERIFIED |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
