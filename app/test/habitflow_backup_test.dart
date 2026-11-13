@@ -62,4 +62,17 @@ void main() {
       throwsFormatException,
     );
   });
+  test('rejects duplicate habit completion dates', () {
+    final source = sample().encode().replaceFirst(
+      '["2026-11-12","2026-11-13"]',
+      '["2026-11-12","2026-11-12"]',
+    );
+    expect(() => HabitFlowBackup.decode(source), throwsFormatException);
+  });
+
+  test('rejects a backup with invalid reminder enabled flag', () {
+    final source = sample().encode().replaceFirst('"enabled":1', '"enabled":9');
+    expect(() => HabitFlowBackup.decode(source), throwsFormatException);
+  });
+
 }
