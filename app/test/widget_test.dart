@@ -14,6 +14,15 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('Insights shows saved-data progress summaries', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    await tester.tap(find.byIcon(Icons.insights_outlined).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Habit activity — last 7 days'), findsOneWidget);
+    expect(find.text('0 of 2 completed'), findsOneWidget);
+    expect(find.text('0 of 0 reached'), findsOneWidget);
+  });
+
   testWidgets('shows Today dashboard and progress', (tester) async {
     await tester.pumpWidget(const HabitFlowApp());
     expect(find.text('Daily progress'), findsOneWidget);
