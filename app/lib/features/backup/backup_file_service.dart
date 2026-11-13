@@ -43,9 +43,17 @@ class BackupFileService {
       throw const FormatException('The selected file cannot be read.');
     }
     final file = File(path);
-    if (await file.length() > HabitFlowBackup.maxBytes) {
+    final stat = await file.stat();
+    if (stat.type != FileSystemEntityType.file) {
+      throw const FormatException('Selected backup must be a regular file.');
+    }
+    if (stat.size > HabitFlowBackup.maxBytes) {
       throw const FormatException('Backup file is too large.');
     }
-    return HabitFlowBackup.decode(await file.readAsString(encoding: utf8));
+    final bytes = await file.readAsBytes();
+    if (bytes.length > HabitFlowBackup.maxBytes) {
+      throw const FormatException('Backup file is too large.');
+    }
+    return HabitFlowBackup.decode(utf8.decode(bytes, allowMalformed: false));
   }
 }
