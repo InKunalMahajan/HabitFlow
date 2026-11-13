@@ -19,3 +19,7 @@ P0: data integrity/security/accessibility blockers; P1: major task failure; P2: 
 
 ## Exit gates
 All P0 closed; critical P1 resolved; 54 screen contracts reconciled; representative devices tested; financial invariants covered; privacy/security review documented. No pass claims until evidence is collected.
+
+## Phase 02I-A manual verification
+
+Use the [20-item execution checklist](phase-02i-a-verification.md). All cases are **NOT RUN** until an actual tester records evidence. Browser prototype does not establish Android TalkBack or iOS VoiceOver compliance.
