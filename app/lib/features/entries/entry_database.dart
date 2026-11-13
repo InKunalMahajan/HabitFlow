@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import 'entry_store.dart';
+import '../reminders/reminder_settings.dart';
 
 /// Local SQLite storage. No network account or cloud synchronization.
 class EntryDatabase {
@@ -13,7 +14,7 @@ class EntryDatabase {
     final root = await getDatabasesPath();
     final db = await openDatabase(
       p.join(root, 'habitflow.db'),
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE entries (
@@ -40,6 +41,15 @@ class EntryDatabase {
             progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0)
           )
         ''');
+        await db.execute('''
+          CREATE TABLE habit_reminders (
+            habit_id INTEGER PRIMARY KEY,
+            hour INTEGER NOT NULL CHECK (hour BETWEEN 0 AND 23),
+            minute INTEGER NOT NULL CHECK (minute BETWEEN 0 AND 59),
+            enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+            FOREIGN KEY (habit_id) REFERENCES entries(id) ON DELETE CASCADE
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -50,6 +60,17 @@ class EntryDatabase {
               title TEXT NOT NULL,
               target INTEGER NOT NULL CHECK (target > 0),
               progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0)
+            )
+          ''');
+        }
+        if (oldVersion < 3) {
+          await db.execute('''
+            CREATE TABLE habit_reminders (
+              habit_id INTEGER PRIMARY KEY,
+              hour INTEGER NOT NULL CHECK (hour BETWEEN 0 AND 23),
+              minute INTEGER NOT NULL CHECK (minute BETWEEN 0 AND 59),
+              enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+              FOREIGN KEY (habit_id) REFERENCES entries(id) ON DELETE CASCADE
             )
           ''');
         }
@@ -113,6 +134,27 @@ class EntryDatabase {
         await txn.insert('goals', goal);
       }
     });
+  }
+
+  Future<Map<int, ReminderSettings>> loadReminders() async {
+    final rows = await _db.query('habit_reminders');
+    final reminders = <int, ReminderSettings>{};
+    for (final row in rows) {
+      final setting = ReminderSettings.fromRow(row);
+      if (setting != null) reminders[setting.habitId] = setting;
+    }
+    return reminders;
+  }
+
+  Future<void> saveReminder(ReminderSettings setting) async {
+    await _db.insert(
+      'habit_reminders', setting.toRow(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteReminder(int habitId) async {
+    await _db.delete('habit_reminders', where: 'habit_id = ?', whereArgs: [habitId]);
   }
 
   Future<void> close() => _db.close();
