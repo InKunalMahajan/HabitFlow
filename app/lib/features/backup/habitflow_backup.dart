@@ -69,8 +69,9 @@ class HabitFlowBackup {
           (kind != 'task' && kind != 'habit') || completed is! bool ||
           (scheduledDay != null && (scheduledDay is! String ||
               !_validDate(scheduledDay))) ||
-          dates is! List ||
-          dates.any((d) => d is! String || !_validDate(d))) {
+          dates is! List || dates.length > 36600 ||
+          dates.any((d) => d is! String || !_validDate(d)) ||
+          dates.toSet().length != dates.length) {
         throw const FormatException('Invalid or duplicate entry.');
       }
       if (kind == 'task' && dates.isNotEmpty) {
