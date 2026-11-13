@@ -77,6 +77,22 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     }
   }
 
+  Future<void> _refreshHabitNotification(int habitId, String title) async {
+    final reminder = _reminders[habitId];
+    if (reminder == null) return;
+    try {
+      final service = HabitNotificationService.instance;
+      if (await service.notificationsAllowed()) {
+        await service.scheduleDaily(reminder, title);
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saveError =
+            'Habit saved, but its phone reminder could not be updated.');
+      }
+    }
+  }
+
   Future<void> _restoreDeviceReminders() async {
     if (!mounted) return;
     try {
@@ -219,6 +235,11 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                           _selected = 0;
                         });
                         _persist();
+                        if (entry != null &&
+                            entry.kind == EntryKind.habit &&
+                            _reminders.containsKey(entry.id)) {
+                          _refreshHabitNotification(entry.id, name);
+                        }
                         Navigator.pop(sheetContext);
                       },
                       icon: Icon(entry == null ? Icons.add : Icons.save_outlined),
