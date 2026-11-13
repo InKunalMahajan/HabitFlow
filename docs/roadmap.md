@@ -30,6 +30,7 @@ Updated: 2026-11-14
 | 03E | SQLite v1 database, load/save entries and habit dates | iPhone task persistence after full app restart confirmed by user (2026-11-14); Android and migration verification pending |
 | 03F | Planner scheduled dates, goals with progress, SQLite v2 migration | All 8 iPhone acceptance tests passed, including migration and restart persistence (user-reported 2026-11-14); Android verification pending |
 | 03G | Semantic headings/progress, adaptive navigation, accessibility regression tests, CI | Local Flutter analyzer and tests passed (user-reported 2026-11-14); CI, VoiceOver, TalkBack and device audit pending |
+| 03H | On-device Insights dashboard, task/habit/goal statistics and tests | Implemented in GitHub; local analyzer, tests and iPhone/Android verification pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
@@ -56,6 +57,6 @@ After the Phase 03B–03C GitHub updates:
 
 ## Scope and honesty
 
-The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights remains a placeholder. No reminders, secure finance ledger, cloud sync, or cloud backup are shipped.
+The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights shows local task, habit and goal statistics; historical task completion trends are not available. No reminders, secure finance ledger, cloud sync, or cloud backup are shipped.
 
 See [Phase 03 foundation](roadmap/phase-03-flutter-foundation.md), [screen registry](design/screen-registry.md), and [test plan](testing/test-plan.md).
