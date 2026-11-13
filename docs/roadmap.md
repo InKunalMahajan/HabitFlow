@@ -26,7 +26,7 @@ Updated: 2026-11-14
 | 03A | Flutter Android/Web scaffold | Implemented; locally verified |
 | 03B | Material 3 theme and adaptive navigation | Implemented; locally verified by analyze/tests |
 | 03C | Today preview, task completion, quick add, widget tests | Implemented; locally verified by analyze/tests |
-| 03D | Habit/task domain entities and state management | Pending |
+| 03D | Task/habit CRUD, daily completion, input validation, widget/unit tests | Implemented in GitHub; local analyzer/tests/device verification pending |
 | 03E | Offline persistence and migrations | Pending |
 | 03F | Planner, goals and feature navigation | Pending |
 | 03G | Accessibility audit, responsive device checks, CI | Pending |
@@ -50,7 +50,7 @@ After the Phase 03B–03C GitHub updates:
 2. From `app/`, run `flutter create --platforms=ios .` after Xcode setup, then `flutter pub get`.
 3. Run the iOS Simulator and `flutter run -d <device-id>`; resolve any code signing/build issues.
 4. Diagnose Chrome debugger failure separately; test `flutter build web --release`.
-5. Implement Phase 03D domain model and Phase 03E offline persistence with tests.
+5. Verify Phase 03D locally with `flutter analyze` and `flutter test`, and test task/habit flows on iPhone and Android. Then implement Phase 03E offline persistence with tests.
 6. Complete functional screens in implementation waves: S001–S017; S018–S027; S028–S032 and S043–S045; S033–S042; S046–S054.
 7. Conduct accessibility, privacy, financial correctness, sync recovery and real-device testing before any production release.
 
