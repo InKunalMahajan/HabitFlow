@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'core/theme/app_theme.dart';
 import 'features/entries/entry_store.dart';
 import 'features/entries/entry_database.dart';
@@ -66,27 +66,27 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
 
   void _persist() {
     final db = widget.database;
-    if (db == null) return;
+    if (db == null) { return; }
     final snapshot = List<FlowEntry>.of(_store.items);
     _saveQueue = _saveQueue.catchError((Object _) {}).then((_) async {
       try {
         await db.save(snapshot);
-        if (mounted && _saveError != null) setState(() => _saveError = null);
+        if (mounted && _saveError != null) { setState(() => _saveError = null); }
       } catch (error) {
-        if (mounted) setState(() => _saveError = 'Could not save changes. Please retry.');
+        if (mounted) { setState(() => _saveError = 'Could not save changes. Please retry.'); }
       }
     });
   }
 
   void _persistGoals() {
     final db = widget.database;
-    if (db == null) return;
+    if (db == null) { return; }
     final snapshot = _goals.map((goal) => Map<String, Object?>.of(goal)).toList();
     _saveQueue = _saveQueue.catchError((Object _) {}).then((_) async {
       try {
         await db.saveGoals(snapshot);
       } catch (_) {
-        if (mounted) setState(() => _saveError = 'Could not save goals. Please retry.');
+        if (mounted) { setState(() => _saveError = 'Could not save goals. Please retry.'); }
       }
     });
   }
@@ -145,7 +145,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2100),
                           );
-                          if (picked != null) updateSheet(() => scheduled = picked);
+                          if (picked != null) { updateSheet(() => scheduled = picked); }
                         },
                         icon: const Icon(Icons.event),
                         label: Text(scheduled == null ? 'Schedule date' : 'Scheduled: ${dateKey(scheduled!)}'),
@@ -455,7 +455,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
             FilledButton(onPressed: () {
               final title = controller.text.trim();
               final target = int.tryParse(targetController.text.trim());
-              if (title.isEmpty || target == null || target < 1 || target > 1000000) return;
+              if (title.isEmpty || target == null || target < 1 || target > 1000000) { return; }
               final nextId = _goals.fold<int>(0, (maxId, g) =>
                 (g['id'] as int) > maxId ? g['id'] as int : maxId) + 1;
               setState(() => _goals.add({
