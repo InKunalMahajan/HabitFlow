@@ -3,6 +3,7 @@ import 'core/theme/app_theme.dart';
 import 'features/entries/entry_store.dart';
 import 'features/entries/entry_database.dart';
 import 'features/insights/insight_summary.dart';
+import 'features/insights/habit_streak.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -605,12 +606,69 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               summary.goalRate,
               Icons.flag_outlined,
             ),
+            const SizedBox(height: 20),
+            Semantics(
+              header: true,
+              child: Text('Habit streaks', style: theme.textTheme.titleLarge),
+            ),
+            const SizedBox(height: 8),
+            if (!_store.items.any((e) => e.kind == EntryKind.habit))
+              const Text('Add a habit to start tracking your streaks.'),
+            ..._store.items
+                .where((e) => e.kind == EntryKind.habit)
+                .map((habit) => _habitStreakCard(context, habit)),
+            const SizedBox(height: 12),
+            const Text(
+              'A current streak includes consecutive days ending today or yesterday. '
+              'Missing today does not break yesterday’s streak until tomorrow. '
+              'The seven-day view runs from six days ago through today.',
+            ),
             const SizedBox(height: 12),
             const Text(
               'Task completion is the current total, not a daily history. '
               'Habit activity counts check-ins from today and the previous six days. '
               'Goal progress shows goals that reached their target. '
               'No data is uploaded.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _habitStreakCard(BuildContext context, FlowEntry habit) {
+    final streak = HabitStreak.fromDates(habit.completedDates, DateTime.now());
+    final today = DateTime.now();
+    final first = DateTime(today.year, today.month, today.day)
+        .subtract(const Duration(days: 6));
+    return Card(
+      key: ValueKey('streak-${habit.id}'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(habit.title, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Text('Current: ${streak.current} days · Longest: ${streak.longest} days'),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(7, (index) {
+                final day = first.add(Duration(days: index));
+                final done = streak.last7Days[index];
+                return Semantics(
+                  label: '${dateKey(day)}: ${done ? 'completed' : 'not completed'}',
+                  child: Chip(
+                    avatar: Icon(
+                      done ? Icons.check_circle : Icons.radio_button_unchecked,
+                      size: 18,
+                    ),
+                    label: Text('${day.day}/${day.month}'),
+                  ),
+                );
+              }),
             ),
           ],
         ),
