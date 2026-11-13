@@ -32,6 +32,7 @@ Updated: 2026-11-14
 | 03G | Semantic headings/progress, adaptive navigation, accessibility regression tests, CI | Local Flutter analyzer and tests passed (user-reported 2026-11-14); CI, VoiceOver, TalkBack and device audit pending |
 | 03H | On-device Insights dashboard, task/habit/goal statistics and tests | Implemented in GitHub; local analyzer, tests and iPhone/Android verification pending |
 | 03I | Habit streaks, seven-day visual activity and unit tests | Implemented in GitHub; local analyzer, tests and device verification pending |
+| 03J | Habit history date picker, edit check-ins with confirmation, widget test | Implemented in GitHub; local analyzer, tests and device verification pending |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
