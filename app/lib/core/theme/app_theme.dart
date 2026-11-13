@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Shared Material 3 visual language for HabitFlow.
 abstract final class AppTheme {
