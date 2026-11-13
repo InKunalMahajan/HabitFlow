@@ -49,6 +49,21 @@ class HabitNotificationService {
         ?.requestNotificationsPermission() ?? false;
   }
 
+  Future<bool> notificationsAllowed() async {
+    if (!supported) return false;
+    await initialize();
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final settings = await _plugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.checkPermissions();
+      return settings?.isEnabled ?? false;
+    }
+    final allowed = await _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.areNotificationsEnabled();
+    return allowed ?? false;
+  }
+
   Future<void> scheduleDaily(ReminderSettings setting, String habitTitle) async {
     if (!supported) return;
     await initialize();
