@@ -29,4 +29,5 @@ jobs:
       - name: Static analysis
         run: flutter analyze
       - name: Widget and unit tests
+        if: success() || failure()
         run: flutter test
