@@ -23,3 +23,7 @@
 5. Insights, sync, settings (S046–S054).
 
 Private testing release only after accessibility, security, financial correctness and sync recovery gates.
+
+## Phase 02I-A — Prototype corrections (2026-11-13)
+
+Committed [corrected HTML design demo](../prototype/index.html), [design notes](design/phase-02i-a.md) and [verification checklist](testing/phase-02i-a-verification.md). P0 design corrections implemented in a simulated browser prototype; **not yet tested**. P1 screen-specific coverage and full accessibility remain incomplete. Flutter installation is still on hold.
