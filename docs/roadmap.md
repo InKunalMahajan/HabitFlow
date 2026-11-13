@@ -30,7 +30,7 @@ Updated: 2026-11-14
 | 03E | Offline persistence and migrations | Pending |
 | 03F | Planner, goals and feature navigation | Pending |
 | 03G | Accessibility audit, responsive device checks, CI | Pending |
-| iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Blocked/pending |
+| iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
 
@@ -42,7 +42,7 @@ After the Phase 03B–03C GitHub updates:
 - `flutter run -d chrome`: **failed** to establish the debugging WebSocket connection, followed by a missing temporary `app.dill.incremental.dill` file. Browser runtime is **not verified**.
 - Xcode 27.2 is installed and selected at `/Applications/Xcode.app/Contents/Developer`.
 - Simulator.app is absent at the checked Xcode path; `xcrun simctl list devices available` and `xcrun simctl list runtimes` returned empty lists. iOS runtime download and simulator setup are pending.
-- No iOS app run, Android device run, accessibility audit, or persistence verification is claimed.
+- The project owner confirmed GitHub synchronization succeeded. The iOS simulator runtime download was started and is still taking time; installation completion is not confirmed.\n- No iOS app run, Android device run, accessibility audit, or persistence verification is claimed.
 
 ## Next development sequence
 
