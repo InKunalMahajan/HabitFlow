@@ -4,6 +4,7 @@ import 'features/entries/entry_store.dart';
 import 'features/entries/entry_database.dart';
 import 'features/insights/insight_summary.dart';
 import 'features/insights/habit_streak.dart';
+import 'features/reminders/reminder_settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,7 +12,8 @@ Future<void> main() async {
     final database = await EntryDatabase.open();
     final entries = await database.load();
     final goals = await database.loadGoals();
-    runApp(HabitFlowApp(database: database, initialEntries: entries, initialGoals: goals));
+    final reminders = await database.loadReminders();
+    runApp(HabitFlowApp(database: database, initialEntries: entries, initialGoals: goals, initialReminders: reminders));
   } catch (error) {
     runApp(MaterialApp(home: Scaffold(body: Center(child: Text(
       'Could not open local storage. Your data was not changed.\n$error',
@@ -21,11 +23,12 @@ Future<void> main() async {
 }
 
 class HabitFlowApp extends StatelessWidget {
-  const HabitFlowApp({super.key, this.database, this.initialEntries, this.initialGoals});
+  const HabitFlowApp({super.key, this.database, this.initialEntries, this.initialGoals, this.initialReminders});
 
   final EntryDatabase? database;
   final List<FlowEntry>? initialEntries;
   final List<Map<String, Object?>>? initialGoals;
+  final Map<int, ReminderSettings>? initialReminders;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -34,7 +37,7 @@ class HabitFlowApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
-        home: HabitFlowShell(database: database, initialEntries: initialEntries, initialGoals: initialGoals),
+        home: HabitFlowShell(database: database, initialEntries: initialEntries, initialGoals: initialGoals, initialReminders: initialReminders),
       );
 }
 
@@ -54,6 +57,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     ..add('Review today’s priorities', EntryKind.task)
     ..add('Plan tomorrow', EntryKind.task);
   final List<Map<String, Object?>> _goals = [];
+  final Map<int, ReminderSettings> _reminders = {};
   Future<void> _saveQueue = Future<void>.value();
   String? _saveError;
 
@@ -64,6 +68,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
       _store.restore(widget.initialEntries!);
     }
     _goals.addAll(widget.initialGoals ?? []);
+    _reminders.addAll(widget.initialReminders ?? {});
   }
 
   void _persist() {
@@ -606,6 +611,8 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               summary.goalRate,
               Icons.flag_outlined,
             ),
+            const SizedBox(height: 12),
+            const Text('Reminder times are saved locally. Notifications are not enabled yet.'),
             const SizedBox(height: 20),
             Semantics(
               header: true,
@@ -634,6 +641,48 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
         ),
       ),
     );
+  }
+
+  Future<void> _setHabitReminder(FlowEntry habit) async {
+    final previous = _reminders[habit.id];
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: previous == null
+          ? const TimeOfDay(hour: 9, minute: 0)
+          : TimeOfDay(hour: previous.hour, minute: previous.minute),
+      helpText: 'Daily reminder time',
+    );
+    if (picked == null || !mounted) return;
+    final setting = ReminderSettings(
+      habitId: habit.id,
+      hour: picked.hour,
+      minute: picked.minute,
+    );
+    final db = widget.database;
+    if (db != null) {
+      try {
+        await _saveQueue;
+        await db.saveReminder(setting);
+      } catch (_) {
+        if (mounted) setState(() => _saveError = 'Could not save reminder time.');
+        return;
+      }
+    }
+    if (mounted) setState(() => _reminders[habit.id] = setting);
+  }
+
+  Future<void> _removeHabitReminder(FlowEntry habit) async {
+    final db = widget.database;
+    if (db != null) {
+      try {
+        await _saveQueue;
+        await db.deleteReminder(habit.id);
+      } catch (_) {
+        if (mounted) setState(() => _saveError = 'Could not remove reminder time.');
+        return;
+      }
+    }
+    if (mounted) setState(() => _reminders.remove(habit.id));
   }
 
   Future<void> _editHabitHistory(FlowEntry habit) async {
@@ -688,6 +737,27 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
             const SizedBox(height: 8),
             Text('Current: ${streak.current} days · Longest: ${streak.longest} days'),
             const SizedBox(height: 8),
+            Text(
+              _reminders[habit.id] == null
+                  ? 'No reminder time set'
+                  : 'Daily reminder time: ${_reminders[habit.id]!.timeLabel}',
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _setHabitReminder(habit),
+                  icon: const Icon(Icons.schedule_outlined),
+                  label: const Text('Set reminder time'),
+                ),
+                if (_reminders.containsKey(habit.id))
+                  TextButton(
+                    onPressed: () => _removeHabitReminder(habit),
+                    child: const Text('Clear reminder'),
+                  ),
+              ],
+            ),
             OutlinedButton.icon(
               onPressed: () => _editHabitHistory(habit),
               icon: const Icon(Icons.edit_calendar_outlined),
