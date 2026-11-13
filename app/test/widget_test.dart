@@ -1,30 +1,38 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
-
 import 'package:habitflow/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('shows Today dashboard and progress', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    expect(find.text('Daily progress'), findsOneWidget);
+    expect(find.text('0 of 2 tasks complete'), findsOneWidget);
+    expect(find.text('Review today’s priorities'), findsOneWidget);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('task completion updates progress', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    await tester.tap(find.byType(CheckboxListTile).first);
     await tester.pump();
+    expect(find.text('1 of 2 tasks complete'), findsOneWidget);
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  testWidgets('navigation switches to Planner', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    await tester.tap(find.byIcon(Icons.calendar_month_outlined).first);
+    await tester.pumpAndSettle();
+    expect(find.text('This feature is planned for a future phase.'),
+        findsOneWidget);
+  });
+
+  testWidgets('quick add creates a session task', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Read a book');
+    await tester.tap(find.text('Add task'));
+    await tester.pumpAndSettle();
+    expect(find.text('Read a book'), findsOneWidget);
+    expect(find.text('0 of 3 tasks complete'), findsOneWidget);
   });
 }
