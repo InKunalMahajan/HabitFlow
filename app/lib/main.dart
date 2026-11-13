@@ -462,7 +462,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               ),
             ),
             if (_saveError != null) ...[
-              Text(_saveError!, style: TextStyle(color: theme.colorScheme.error)),
+              Semantics(liveRegion: true, child: Text(_saveError!, style: TextStyle(color: theme.colorScheme.error))),
               TextButton(onPressed: _persist, child: const Text('Retry saving')),
             ],
             const SizedBox(height: 20),
