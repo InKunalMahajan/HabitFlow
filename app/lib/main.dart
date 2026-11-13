@@ -42,11 +42,12 @@ class HabitFlowApp extends StatelessWidget {
 }
 
 class HabitFlowShell extends StatefulWidget {
-  const HabitFlowShell({super.key, this.database, this.initialEntries, this.initialGoals});
+  const HabitFlowShell({super.key, this.database, this.initialEntries, this.initialGoals, this.initialReminders});
 
   final EntryDatabase? database;
   final List<FlowEntry>? initialEntries;
   final List<Map<String, Object?>>? initialGoals;
+  final Map<int, ReminderSettings>? initialReminders;
 
   @override
   State<HabitFlowShell> createState() => _HabitFlowShellState();
