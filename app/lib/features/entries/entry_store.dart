@@ -80,7 +80,14 @@ class EntryStore {
     return true;
   }
 
+  /// Updates one local calendar day; future habit dates are not allowed.
   bool setCompleted(int id, bool completed, {DateTime? on}) {
+    final selected = on ?? DateTime.now();
+    final today = DateTime.now();
+    if (DateTime(selected.year, selected.month, selected.day).isAfter(
+        DateTime(today.year, today.month, today.day))) {
+      return false;
+    }
     final index = _items.indexWhere((item) => item.id == id);
     if (index < 0) return false;
     final item = _items[index];
@@ -88,7 +95,7 @@ class EntryStore {
       _items[index] = item.copyWith(completed: completed);
     } else {
       final dates = {...item.completedDates};
-      final key = dateKey(on ?? DateTime.now());
+      final key = dateKey(selected);
       if (completed) {
         dates.add(key);
       } else {
