@@ -7,6 +7,7 @@ import 'features/insights/habit_streak.dart';
 import 'features/reminders/reminder_settings.dart';
 import 'features/reminders/reminder_schedule.dart';
 import 'features/reminders/habit_notification_service.dart';
+import 'features/reminders/reminder_reconciliation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,11 +120,19 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     try {
       final service = HabitNotificationService.instance;
       await service.initialize();
+      final plan = ReminderReconciliation.plan(_store.items, _reminders);
+      for (final id in plan.orphanedHabitIds) {
+        await service.cancel(id);
+        if (widget.database != null) {
+          await widget.database!.deleteReminder(id);
+        }
+        _reminders.remove(id);
+      }
       if (!await service.notificationsAllowed()) return;
       for (final entry in _store.items.where((e) => e.kind == EntryKind.habit)) {
-        final reminder = _reminders[entry.id];
+        final reminder = plan.active[entry.id];
         if (reminder != null) {
-          await HabitNotificationService.instance.scheduleDaily(reminder, entry.title);
+          await service.scheduleDaily(reminder, entry.title);
         }
       }
     } catch (_) {
