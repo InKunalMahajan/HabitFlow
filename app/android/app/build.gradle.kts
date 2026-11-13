@@ -56,7 +56,7 @@ android {
             if (releaseKeystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                logger.warn("HabitFlow: release signing is not configured; do not publish this build.")
+                logger.warn("HabitFlow: release signing is not configured. Release tasks will be blocked.")
             }
         }
     }
@@ -75,4 +75,17 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+
+// A release must never be published without the private signing configuration.
+gradle.taskGraph.whenReady {
+    val isReleaseTask = allTasks.any { task ->
+        task.project == project &&
+            task.name.contains("Release", ignoreCase = false) &&
+            (task.name.startsWith("assemble") || task.name.startsWith("bundle") ||
+                task.name.startsWith("package") || task.name.startsWith("validateSigning"))
+    }
+    if (isReleaseTask && !releaseKeystorePropertiesFile.exists()) {
+        throw GradleException("HabitFlow release signing is missing. Configure android/key.properties before a release build.")
+    }
 }
