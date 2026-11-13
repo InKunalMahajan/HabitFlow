@@ -3,6 +3,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:habitflow/main.dart';
 
 void main() {
+  testWidgets('accessibility labels include progress and task actions', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    final semantics = tester.ensureSemantics();
+    expect(find.byTooltip('Edit Plan tomorrow'), findsOneWidget);
+    expect(find.byTooltip('Delete Plan tomorrow'), findsOneWidget);
+    expect(find.byWidgetPredicate((widget) =>
+        widget is Semantics && widget.properties.label == 'Daily progress'),
+        findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('shows Today dashboard and progress', (tester) async {
     await tester.pumpWidget(const HabitFlowApp());
     expect(find.text('Daily progress'), findsOneWidget);
@@ -60,7 +71,7 @@ void main() {
     await tester.tap(find.text('Add item'));
     await tester.pumpAndSettle();
     expect(find.text('Drink water'), findsOneWidget);
-    expect(find.text('Daily habit · session only'), findsOneWidget);
+    expect(find.text('Daily habit'), findsOneWidget);
   });
 
   testWidgets('edit and delete task with confirmation', (tester) async {
