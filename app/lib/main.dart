@@ -348,7 +348,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                               _reminders..clear()..addAll(reminders);
                               _saveError = null;
                             });
-                            if (dialogContext.mounted) Navigator.pop(dialogContext);
+                            if (dialogContext.mounted) {
+                              Navigator.pop(dialogContext);
+                            }
                             await _restoreDeviceReminders();
                           } catch (_) {
                             updateDialog(() => error =
