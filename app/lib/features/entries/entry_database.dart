@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 import 'entry_store.dart';
+import '../backup/habitflow_backup.dart';
 import '../reminders/reminder_settings.dart';
 
 /// Local SQLite storage. No network account or cloud synchronization.
@@ -162,6 +163,74 @@ class EntryDatabase {
 
   Future<void> deleteReminder(int habitId) async {
     await _db.delete('habit_reminders', where: 'habit_id = ?', whereArgs: [habitId]);
+  }
+
+  /// Reads a consistent snapshot for a portable backup.
+  Future<HabitFlowBackup> exportBackup() async {
+    return _db.transaction((txn) async {
+      final rows = await txn.query('entries', orderBy: 'id ASC');
+      final dates = await txn.query('habit_completions');
+      final byId = <int, Set<String>>{};
+      for (final row in dates) {
+        (byId.putIfAbsent(row['entry_id'] as int, () => <String>{}))
+            .add(row['day'] as String);
+      }
+      final entries = [
+        for (final row in rows)
+          FlowEntry(
+            id: row['id'] as int,
+            title: row['title'] as String,
+            kind: row['kind'] == 'habit' ? EntryKind.habit : EntryKind.task,
+            completed: row['completed'] == 1,
+            scheduledDay: row['scheduled_day'] as String?,
+            completedDates: byId[row['id'] as int] ?? <String>{},
+          ),
+      ];
+      final goals = await txn.query('goals', orderBy: 'id ASC');
+      final reminderRows = await txn.query('habit_reminders');
+      final reminders = <int, ReminderSettings>{};
+      for (final row in reminderRows) {
+        final setting = ReminderSettings.fromRow(row);
+        if (setting != null) reminders[setting.habitId] = setting;
+      }
+      return HabitFlowBackup(
+        entries: entries, goals: goals, reminders: reminders,
+      );
+    });
+  }
+
+  /// Replaces all local records in ONE transaction. The caller must first
+  /// preview the backup and obtain explicit confirmation from the user.
+  /// If any insert fails, SQLite restores the previous database contents.
+  Future<void> restoreBackup(HabitFlowBackup backup) async {
+    // Revalidate even if callers constructed the object themselves.
+    final verified = HabitFlowBackup.decode(backup.encode());
+    await _db.transaction((txn) async {
+      await txn.delete('habit_reminders');
+      await txn.delete('habit_completions');
+      await txn.delete('entries');
+      await txn.delete('goals');
+      for (final entry in verified.entries) {
+        await txn.insert('entries', {
+          'id': entry.id,
+          'title': entry.title,
+          'kind': entry.kind.name,
+          'completed': entry.completed ? 1 : 0,
+          'scheduled_day': entry.scheduledDay,
+        });
+        for (final day in entry.completedDates) {
+          await txn.insert('habit_completions', {
+            'entry_id': entry.id, 'day': day,
+          });
+        }
+      }
+      for (final goal in verified.goals) {
+        await txn.insert('goals', goal);
+      }
+      for (final reminder in verified.reminders.values) {
+        await txn.insert('habit_reminders', reminder.toRow());
+      }
+    });
   }
 
   Future<void> close() => _db.close();
