@@ -10,10 +10,10 @@ class EntryDatabase {
 
   final Database _db;
 
-  static Future<EntryDatabase> open() async {
-    final root = await getDatabasesPath();
+  static Future<EntryDatabase> open({String? databasePath}) async {
+    final path = databasePath ?? p.join(await getDatabasesPath(), 'habitflow.db');
     final db = await openDatabase(
-      p.join(root, 'habitflow.db'),
+      path,
       version: 3,
       onCreate: (db, version) async {
         await db.execute('''
