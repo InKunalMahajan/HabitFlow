@@ -6,6 +6,7 @@ import 'features/insights/insight_summary.dart';
 import 'features/insights/habit_streak.dart';
 import 'features/reminders/reminder_settings.dart';
 import 'features/reminders/reminder_schedule.dart';
+import 'features/reminders/habit_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -614,7 +615,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               Icons.flag_outlined,
             ),
             const SizedBox(height: 12),
-            const Text('Reminder times and next-occurrence previews are local. Phone notifications are not enabled yet.'),
+            const Text('Daily notifications require permission and device setup. Times are approximate on Android.'),
             const SizedBox(height: 20),
             Semantics(
               header: true,
@@ -676,6 +677,18 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
       }
     }
     if (mounted) setState(() => _reminders[habit.id] = setting);
+    try {
+      final allowed = await HabitNotificationService.instance.requestPermission();
+      if (allowed) {
+        await HabitNotificationService.instance.scheduleDaily(setting, habit.title);
+      } else if (mounted) {
+        setState(() => _saveError = 'Reminder time saved, but notifications are not permitted.');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _saveError = 'Reminder time saved, but phone notification setup failed.');
+      }
+    }
   }
 
   Future<void> _removeHabitReminder(FlowEntry habit) async {
@@ -690,6 +703,11 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
       }
     }
     if (mounted) setState(() => _reminders.remove(habit.id));
+    try {
+      await HabitNotificationService.instance.cancel(habit.id);
+    } catch (_) {
+      if (mounted) setState(() => _saveError = 'Reminder cleared, but device notification cancellation failed.');
+    }
   }
 
   Future<void> _editHabitHistory(FlowEntry habit) async {
