@@ -31,3 +31,7 @@ Committed [corrected HTML design demo](../prototype/index.html), [design notes](
 ## Phase 02I-C — Screen workflow expansion (2026-11-13)
 
 Committed [expanded HTML prototype](../prototype/index.html), [implementation scope and limitations](design/phase-02i-c.md), and [26-case manual test checklist](testing/phase-02i-c-verification.md). Interactions are temporary browser demonstrations; all tests remain NOT RUN or BLOCKED. Not all 54 screens are fully interactive. Phase 02J approval is pending. Flutter remains on hold.
+
+## Phase 02I-D — Browser regression audit preparation (2026-11-13)
+
+Updated [HTML prototype](../prototype/index.html) to clear stale editor navigation and preserve completed state on edits. Added [Node source-contract tests](../tests/prototype-static.test.mjs) and [browser/accessibility audit plan](testing/phase-02i-d-audit.md). **Tests not executed**; this is not a device/browser pass. Phase 02J remains pending. Flutter installation remains on hold.
