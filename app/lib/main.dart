@@ -12,7 +12,7 @@ Future<void> main() async {
     runApp(HabitFlowApp(database: database, initialEntries: entries, initialGoals: goals));
   } catch (error) {
     runApp(MaterialApp(home: Scaffold(body: Center(child: Text(
-      'Could not open local storage. Your data was not changed.\\n$error',
+      'Could not open local storage. Your data was not changed.\n$error',
       textAlign: TextAlign.center,
     )))));
   }
@@ -37,10 +37,11 @@ class HabitFlowApp extends StatelessWidget {
 }
 
 class HabitFlowShell extends StatefulWidget {
-  const HabitFlowShell({super.key, this.database, this.initialEntries});
+  const HabitFlowShell({super.key, this.database, this.initialEntries, this.initialGoals});
 
   final EntryDatabase? database;
   final List<FlowEntry>? initialEntries;
+  final List<Map<String, Object?>>? initialGoals;
 
   @override
   State<HabitFlowShell> createState() => _HabitFlowShellState();
@@ -248,7 +249,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               children: [
                 Text(widget.database == null
                     ? 'Preview mode: items are saved for this session only.'
-                    : 'Phase 03E: items are saved locally on this device.'),
+                    : 'Tasks, habits, and goals are stored locally on this device.'),
               ],
             ),
           ),
