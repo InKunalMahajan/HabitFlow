@@ -37,6 +37,7 @@ Updated: 2026-11-14
 | 03L | Next reminder calculation, upcoming schedule preview, boundary tests | Implemented in GitHub; native notification delivery not implemented; local tests and device verification pending |
 | 03M | Local iOS/Android notification scheduling, permissions and Android native setup | Implemented in GitHub; builds, permissions and real-device delivery NOT VERIFIED |
 | 03N | Notification permission checks on restart and cancellation on habit deletion | Implemented in GitHub; Flutter build and real-device behavior NOT VERIFIED |
+| 03O | Notification permission status control and reminder text refresh on habit rename | Implemented in GitHub; local analyzer, tests and device delivery NOT VERIFIED |
 | iOS enablement | Xcode simulator runtime, iOS project, iPhone testing | Runtime download in progress; iOS project and device testing pending |
 
 ## Verification evidence (reported by project owner)
@@ -63,6 +64,6 @@ After the Phase 03B–03C GitHub updates:
 
 ## Scope and honesty
 
-The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights shows local task, habit and goal statistics; historical task completion trends are not available. Reminder time preferences are stored locally but no notifications are scheduled or delivered. No secure finance ledger, cloud sync, or cloud backup are shipped.
+The 54-screen registry describes planned scope, **not 54 production-ready Flutter screens**. The Flutter app uses device-local SQLite for tasks, habits, scheduled dates, and goals on iOS/Android. Insights shows local task, habit and goal statistics; historical task completion trends are not available. Reminder time preferences are stored locally and native scheduling code is present; actual delivery remains unverified on iOS and Android. No secure finance ledger, cloud sync, or cloud backup are shipped.
 
 See [Phase 03 foundation](roadmap/phase-03-flutter-foundation.md), [screen registry](design/screen-registry.md), and [test plan](testing/test-plan.md).
