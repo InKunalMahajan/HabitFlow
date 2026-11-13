@@ -28,6 +28,16 @@ void main() {
     expect(store.isCompleted(store.items.single, on: monday), isFalse);
   });
 
+  test('restore keeps IDs, completion history and next ID', () {
+    final store = EntryStore();
+    store.restore([
+      FlowEntry(id: 42, title: 'Walk', kind: EntryKind.habit,
+          completedDates: {'2026-11-14'}),
+    ]);
+    expect(store.items.single.completedDates, contains('2026-11-14'));
+    expect(store.add('Read', EntryKind.task).id, 43);
+  });
+
   test('empty and oversized names are rejected', () {
     final store = EntryStore();
     expect(() => store.add('   ', EntryKind.task), throwsArgumentError);
