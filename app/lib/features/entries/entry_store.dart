@@ -34,6 +34,13 @@ class EntryStore {
 
   List<FlowEntry> get items => List.unmodifiable(_items);
 
+  void restore(List<FlowEntry> entries) {
+    _items
+      ..clear()
+      ..addAll(entries);
+    _nextId = entries.fold<int>(0, (maxId, item) => item.id > maxId ? item.id : maxId) + 1;
+  }
+
   FlowEntry add(String title, EntryKind kind) {
     final normalized = title.trim();
     if (normalized.isEmpty || normalized.length > 120) {
