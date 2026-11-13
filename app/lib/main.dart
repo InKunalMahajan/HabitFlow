@@ -80,7 +80,9 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
   Future<void> _restoreDeviceReminders() async {
     if (!mounted) return;
     try {
-      await HabitNotificationService.instance.initialize();
+      final service = HabitNotificationService.instance;
+      await service.initialize();
+      if (!await service.notificationsAllowed()) return;
       for (final entry in _store.items.where((e) => e.kind == EntryKind.habit)) {
         final reminder = _reminders[entry.id];
         if (reminder != null) {
@@ -255,8 +257,22 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
       ),
     );
     if (confirmed == true && mounted) {
-      setState(() => _store.remove(entry.id));
+      final hadReminder = _reminders.containsKey(entry.id);
+      setState(() {
+        _store.remove(entry.id);
+        _reminders.remove(entry.id);
+      });
       _persist();
+      if (entry.kind == EntryKind.habit && hadReminder) {
+        try {
+          await HabitNotificationService.instance.cancel(entry.id);
+        } catch (_) {
+          if (mounted) {
+            setState(() => _saveError =
+                'Habit deleted, but its phone reminder could not be cancelled.');
+          }
+        }
+      }
     }
   }
 
