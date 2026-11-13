@@ -8,7 +8,8 @@ Future<void> main() async {
   try {
     final database = await EntryDatabase.open();
     final entries = await database.load();
-    runApp(HabitFlowApp(database: database, initialEntries: entries));
+    final goals = await database.loadGoals();
+    runApp(HabitFlowApp(database: database, initialEntries: entries, initialGoals: goals));
   } catch (error) {
     runApp(MaterialApp(home: Scaffold(body: Center(child: Text(
       'Could not open local storage. Your data was not changed.\\n$error',
@@ -18,10 +19,11 @@ Future<void> main() async {
 }
 
 class HabitFlowApp extends StatelessWidget {
-  const HabitFlowApp({super.key, this.database, this.initialEntries});
+  const HabitFlowApp({super.key, this.database, this.initialEntries, this.initialGoals});
 
   final EntryDatabase? database;
   final List<FlowEntry>? initialEntries;
+  final List<Map<String, Object?>>? initialGoals;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -30,7 +32,7 @@ class HabitFlowApp extends StatelessWidget {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
-        home: HabitFlowShell(database: database, initialEntries: initialEntries),
+        home: HabitFlowShell(database: database, initialEntries: initialEntries, initialGoals: initialGoals),
       );
 }
 
@@ -48,6 +50,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
   final EntryStore _store = EntryStore()
     ..add('Review today’s priorities', EntryKind.task)
     ..add('Plan tomorrow', EntryKind.task);
+  final List<Map<String, Object?>> _goals = [];
   Future<void> _saveQueue = Future<void>.value();
   String? _saveError;
 
@@ -57,6 +60,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     if (widget.initialEntries != null) {
       _store.restore(widget.initialEntries!);
     }
+    _goals.addAll(widget.initialGoals ?? []);
   }
 
   void _persist() {
@@ -73,6 +77,19 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
     });
   }
 
+  void _persistGoals() {
+    final db = widget.database;
+    if (db == null) return;
+    final snapshot = _goals.map((goal) => Map<String, Object?>.of(goal)).toList();
+    _saveQueue = _saveQueue.catchError((Object _) {}).then((_) async {
+      try {
+        await db.saveGoals(snapshot);
+      } catch (_) {
+        if (mounted) setState(() => _saveError = 'Could not save goals. Please retry.');
+      }
+    });
+  }
+
   int _selected = 0;
   static const _titles = ['Today', 'Planner', 'Goals', 'Insights'];
   static const _icons = [
@@ -85,6 +102,7 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
   Future<void> _editEntry({FlowEntry? entry}) async {
     final controller = TextEditingController(text: entry?.title ?? '');
     var kind = entry?.kind ?? EntryKind.task;
+    DateTime? scheduled = entry?.scheduledDay == null ? null : DateTime.tryParse(entry!.scheduledDay!);
     String? error;
     try {
       await showModalBottomSheet<void>(
@@ -116,6 +134,25 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                         onSelectionChanged: (value) =>
                             updateSheet(() => kind = value.first),
                       ),
+                    if (kind == EntryKind.task) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: sheetContext,
+                            initialDate: scheduled ?? DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null) updateSheet(() => scheduled = picked);
+                        },
+                        icon: const Icon(Icons.event),
+                        label: Text(scheduled == null ? 'Schedule date' : 'Scheduled: \${dateKey(scheduled!)}'),
+                      ),
+                      if (scheduled != null)
+                        TextButton(onPressed: () => updateSheet(() => scheduled = null),
+                            child: const Text('Clear date')),
+                    ],
                     const SizedBox(height: 16),
                     TextField(
                       key: const Key('entry-name'),
@@ -139,9 +176,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                         }
                         setState(() {
                           if (entry == null) {
-                            _store.add(name, kind);
+                            _store.add(name, kind, scheduledDay: scheduled == null ? null : dateKey(scheduled!));
                           } else {
                             _store.rename(entry.id, name);
+                            if (entry.kind == EntryKind.task) {
+                              _store.schedule(entry.id, scheduled == null ? null : dateKey(scheduled!));
+                            }
                           }
                           _selected = 0;
                         });
@@ -235,9 +275,12 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
               ),
             ),
           Expanded(
-            child: _selected == 0
-                ? _todayPage(context)
-                : _placeholderPage(context, _titles[_selected]),
+            child: switch (_selected) {
+              0 => _todayPage(context),
+              1 => _plannerPage(context),
+              2 => _goalsPage(context),
+              _ => _placeholderPage(context, _titles[_selected]),
+            },
           ),
         ],
       ),
@@ -338,8 +381,8 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
                 value: _store.isCompleted(item),
                 title: Text(item.title),
                 subtitle: Text(item.kind == EntryKind.habit
-                    ? 'Daily habit · session only'
-                    : 'Saved for this session only'),
+                    ? 'Daily habit'
+                    : item.scheduledDay == null ? 'No scheduled date' : 'Scheduled: \${item.scheduledDay}'),
                 controlAffinity: ListTileControlAffinity.leading,
                 onChanged: (checked) {
                   setState(() => _store.setCompleted(item.id, checked == true));
@@ -360,6 +403,145 @@ class _HabitFlowShellState extends State<HabitFlowShell> {
           ],
         ),
       );
+
+
+  Widget _plannerPage(BuildContext context) {
+    final tasks = _store.items.where((e) => e.kind == EntryKind.task).toList()
+      ..sort((a, b) => (a.scheduledDay ?? '9999').compareTo(b.scheduledDay ?? '9999'));
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 112),
+      children: [
+        Text('Planner', style: Theme.of(context).textTheme.headlineMedium),
+        const SizedBox(height: 8),
+        const Text('Schedule tasks by day. Edit a task to choose its date.'),
+        const SizedBox(height: 16),
+        if (tasks.isEmpty) const Text('No tasks to plan yet.'),
+        ...tasks.map((item) => _entryTile(item)),
+      ],
+    );
+  }
+
+  Future<void> _addGoal() async {
+    final controller = TextEditingController();
+    final targetController = TextEditingController(text: '10');
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('New goal'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: controller,
+                decoration: const InputDecoration(labelText: 'Goal name'),
+                maxLength: 120),
+              TextField(controller: targetController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Target count')),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel')),
+            FilledButton(onPressed: () {
+              final title = controller.text.trim();
+              final target = int.tryParse(targetController.text.trim());
+              if (title.isEmpty || target == null || target < 1 || target > 1000000) return;
+              final nextId = _goals.fold<int>(0, (maxId, g) =>
+                (g['id'] as int) > maxId ? g['id'] as int : maxId) + 1;
+              setState(() => _goals.add({
+                'id': nextId, 'title': title, 'target': target, 'progress': 0,
+              }));
+              _persistGoals();
+              Navigator.pop(dialogContext);
+            }, child: const Text('Create goal')),
+          ],
+        ),
+      );
+    } finally {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      controller.dispose();
+      targetController.dispose();
+    }
+  }
+
+  Widget _goalsPage(BuildContext context) => ListView(
+    padding: const EdgeInsets.fromLTRB(20, 20, 20, 112),
+    children: [
+      Text('Goals', style: Theme.of(context).textTheme.headlineMedium),
+      const SizedBox(height: 12),
+      FilledButton.icon(
+        onPressed: _addGoal,
+        icon: const Icon(Icons.add),
+        label: const Text('Create goal'),
+      ),
+      const SizedBox(height: 16),
+      if (_goals.isEmpty) const Text('No goals yet. Create your first goal.'),
+      ..._goals.map((goal) {
+        final id = goal['id'] as int;
+        final title = goal['title'] as String;
+        final target = goal['target'] as int;
+        final progress = goal['progress'] as int;
+        return Card(
+          key: ValueKey('goal-$id'),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Text('$progress of $target complete'),
+                LinearProgressIndicator(value: (progress / target).clamp(0.0, 1.0)),
+                Row(children: [
+                  IconButton(
+                    tooltip: 'Decrease $title',
+                    onPressed: progress <= 0 ? null : () {
+                      setState(() => goal['progress'] = progress - 1);
+                      _persistGoals();
+                    },
+                    icon: const Icon(Icons.remove_circle_outline),
+                  ),
+                  IconButton(
+                    tooltip: 'Increase $title',
+                    onPressed: progress >= target ? null : () {
+                      setState(() => goal['progress'] = progress + 1);
+                      _persistGoals();
+                    },
+                    icon: const Icon(Icons.add_circle_outline),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Delete goal $title',
+                    onPressed: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Delete goal?'),
+                          content: Text('Delete "$title"?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel')),
+                            FilledButton(onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Delete')),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true && mounted) {
+                        setState(() => _goals.removeWhere((g) => g['id'] == id));
+                        _persistGoals();
+                      }
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        );
+      }),
+    ],
+  );
 
   Widget _placeholderPage(BuildContext context, String title) => Center(
         child: Padding(
