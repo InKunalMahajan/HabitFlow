@@ -23,6 +23,23 @@ void main() {
     expect(find.text('0 of 0 reached'), findsOneWidget);
   });
 
+  testWidgets('Insights offers habit history editing', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Habit').last);
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('entry-name')), 'Stretch');
+    await tester.tap(find.text('Add item'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.insights_outlined).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Edit history'), findsOneWidget);
+    await tester.tap(find.text('Edit history'));
+    await tester.pumpAndSettle();
+    expect(find.text('Choose a habit history date'), findsOneWidget);
+  });
+
   testWidgets('shows Today dashboard and progress', (tester) async {
     await tester.pumpWidget(const HabitFlowApp());
     expect(find.text('Daily progress'), findsOneWidget);
