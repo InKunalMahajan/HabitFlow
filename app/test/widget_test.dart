@@ -21,8 +21,22 @@ void main() {
     await tester.pumpWidget(const HabitFlowApp());
     await tester.tap(find.byIcon(Icons.calendar_month_outlined).first);
     await tester.pumpAndSettle();
-    expect(find.text('This feature is planned for a future phase.'),
+    expect(find.text('Schedule tasks by day. Edit a task to choose its date.'),
         findsOneWidget);
+  });
+
+  testWidgets('goals tab shows create goal action', (tester) async {
+    await tester.pumpWidget(const HabitFlowApp());
+    await tester.tap(find.byIcon(Icons.flag_outlined).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Create goal'), findsOneWidget);
+    await tester.tap(find.text('Create goal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextField, 'Goal name'), 'Read books');
+    await tester.tap(find.text('Create goal').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Read books'), findsOneWidget);
+    expect(find.text('0 of 10 complete'), findsOneWidget);
   });
 
   testWidgets('quick add creates a task', (tester) async {
